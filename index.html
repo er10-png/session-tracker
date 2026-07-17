@@ -158,12 +158,17 @@
     background:var(--card); width:100%; border-radius:16px 16px 0 0;
     max-height:82vh; overflow-y:auto; padding-bottom:24px;
   }
+  .modal-handle{
+    width:36px; height:4px; border-radius:2px; background:#3a3a40;
+    margin:10px auto 0;
+  }
   .modal-head{ display:flex; justify-content:space-between; align-items:center; padding:18px 16px 8px; }
   .modal-head h2{ font-size:17px; font-weight:800; }
   .close-btn{ width:30px; height:30px; border-radius:50%; border:none; background:#26262b; color:var(--ink); font-size:16px; }
   .tabs{ display:flex; border-bottom:1px solid var(--card-line); padding:0 16px; }
   .tab{ flex:1; text-align:center; padding:10px 0; font-size:13px; color:var(--dim); font-weight:600; border-bottom:2px solid transparent; }
   .tab.active{ color:var(--accent); border-color:var(--accent); }
+  .tab-body{ position:relative; overflow:hidden; transition:height .28s cubic-bezier(.4,0,.2,1); }
   .tab-panel{ display:none; padding:16px; }
   .tab-panel.active{ display:block; }
   .tab-panel p{ font-size:13px; color:var(--dim); line-height:1.5; margin-bottom:10px; }
@@ -217,9 +222,16 @@
   .note-block b{ color:var(--ink); display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px; }
   .note-block ul{ margin:0; padding-left:18px; }
   .note-block li{ margin-bottom:4px; }
+  .history-row{ position:relative; overflow:hidden; }
+  .history-delete-bg{
+    position:absolute; top:0; right:0; bottom:0; width:76px;
+    background:var(--accent); color:#fff; font-size:12px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+  }
   .history-item{
     display:flex; align-items:center; gap:8px; padding:9px 0;
     border-bottom:1px solid var(--card-line); font-size:12.5px; color:var(--dim);
+    background:var(--card); position:relative;
   }
   .history-text{ flex:1; min-width:0; display:flex; justify-content:space-between; gap:8px; }
   .history-item b{ color:var(--ink); }
@@ -269,6 +281,7 @@
 <!-- MODAL -->
 <div class="overlay" id="overlay">
   <div class="modal">
+    <div class="modal-handle"></div>
     <div class="modal-head">
       <h2 id="modalName"></h2>
       <button class="close-btn" onclick="closeModal()">&times;</button>
@@ -279,19 +292,21 @@
       <div class="tab" data-tab="notes" onclick="switchTab('notes')">Notes</div>
       <div class="tab" data-tab="history" onclick="switchTab('history')">History</div>
     </div>
-    <div class="tab-panel active" data-panel="execution">
-      <div class="exec-seq" id="movementSvg"></div>
-      <p id="cueText"></p>
-    </div>
-    <div class="tab-panel" data-panel="muscles">
-      <div class="figures" id="figuresWrap"></div>
-      <div class="muscle-key" id="muscleKey"></div>
-    </div>
-    <div class="tab-panel" data-panel="notes">
-      <div class="notes-list" id="notesList"></div>
-    </div>
-    <div class="tab-panel" data-panel="history">
-      <div class="history-list" id="modalHistory"></div>
+    <div class="tab-body" id="tabBody">
+      <div class="tab-panel active" data-panel="execution">
+        <div class="exec-seq" id="movementSvg"></div>
+        <p id="cueText"></p>
+      </div>
+      <div class="tab-panel" data-panel="muscles">
+        <div class="figures" id="figuresWrap"></div>
+        <div class="muscle-key" id="muscleKey"></div>
+      </div>
+      <div class="tab-panel" data-panel="notes">
+        <div class="notes-list" id="notesList"></div>
+      </div>
+      <div class="tab-panel" data-panel="history">
+        <div class="history-list" id="modalHistory"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -572,10 +587,64 @@ async function saveWorkout(){
 
 function openModal(){ document.getElementById('overlay').classList.add('open'); }
 function closeModal(){ document.getElementById('overlay').classList.remove('open'); }
+
 function switchTab(name){
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab===name));
+
+  const body = document.getElementById('tabBody');
+  const startHeight = body.offsetHeight;
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel===name));
+  const endHeight = document.querySelector('.tab-panel.active').offsetHeight;
+
+  body.style.height = startHeight + 'px';
+  body.offsetHeight; // force reflow so the browser registers the start height
+  requestAnimationFrame(() => { body.style.height = endHeight + 'px'; });
+
+  body.addEventListener('transitionend', function onDone(e){
+    if(e.propertyName !== 'height') return;
+    body.style.height = 'auto';
+    body.removeEventListener('transitionend', onDone);
+  });
 }
+
+/* ---------- SWIPE DOWN TO CLOSE MODAL ---------- */
+
+(function setupSwipeToClose(){
+  const modal = document.querySelector('.modal');
+  const handle = document.querySelector('.modal-handle');
+  let startY = 0, dy = 0, dragging = false;
+
+  function onStart(e){
+    dragging = true;
+    startY = e.touches[0].clientY;
+    modal.style.transition = 'none';
+  }
+  function onMove(e){
+    if(!dragging) return;
+    dy = Math.max(0, e.touches[0].clientY - startY);
+    modal.style.transform = `translateY(${dy}px)`;
+  }
+  function onEnd(){
+    if(!dragging) return;
+    dragging = false;
+    modal.style.transition = 'transform .22s ease';
+    if(dy > 110){
+      modal.style.transform = 'translateY(100%)';
+      setTimeout(() => {
+        closeModal();
+        modal.style.transition = 'none';
+        modal.style.transform = '';
+      }, 200);
+    } else {
+      modal.style.transform = '';
+    }
+    dy = 0;
+  }
+
+  handle.addEventListener('touchstart', onStart, {passive:true});
+  handle.addEventListener('touchmove', onMove, {passive:true});
+  handle.addEventListener('touchend', onEnd);
+})();
 
 function renderModalHistory(id){
   const h = history[id] || [];
@@ -585,18 +654,61 @@ function renderModalHistory(id){
     const d = new Date(entry.date);
     const dateStr = d.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'});
     const summary = entry.sets.map(s => s.weight > 0 ? `${s.weight}kg x ${s.reps}` : `${s.reps}s`).join(', ');
-    return `<div class="history-item">
-      <div class="history-text"><span>${dateStr}</span><b style="text-align:right; max-width:60%;">${summary}</b></div>
-      <button class="del-history" onclick="deleteHistoryEntry('${id}', ${i})">&times;</button>
+    return `<div class="history-row">
+      <div class="history-delete-bg" onclick="deleteHistoryEntry('${id}', ${i}, true)">Delete</div>
+      <div class="history-item">
+        <div class="history-text"><span>${dateStr}</span><b style="text-align:right; max-width:60%;">${summary}</b></div>
+        <button class="del-history" onclick="deleteHistoryEntry('${id}', ${i})">&times;</button>
+      </div>
     </div>`;
   }).join('');
+  wrap.querySelectorAll('.history-row').forEach(row => attachSwipeToDelete(row));
 }
 
-async function deleteHistoryEntry(id, index){
-  if(!confirm('Delete this logged session? This can\'t be undone.')) return;
+async function deleteHistoryEntry(id, index, skipConfirm){
+  if(!skipConfirm && !confirm('Delete this logged session? This can\'t be undone.')) return;
   history[id].splice(index, 1);
   await persistHistory();
   renderModalHistory(id);
+}
+
+/* ---------- SWIPE TO DELETE (history rows) ---------- */
+
+function attachSwipeToDelete(row){
+  const item = row.querySelector('.history-item');
+  const maxSwipe = -76;
+  let startX = 0, startY = 0, dx = 0, locked = null;
+
+  function onStart(e){
+    const t = e.touches[0];
+    startX = t.clientX; startY = t.clientY; dx = 0; locked = null;
+    item.style.transition = 'none';
+  }
+  function onMove(e){
+    const t = e.touches[0];
+    const rawDx = t.clientX - startX;
+    const rawDy = t.clientY - startY;
+    if(locked === null){
+      if(Math.abs(rawDx) > 6 || Math.abs(rawDy) > 6){
+        locked = Math.abs(rawDx) > Math.abs(rawDy) ? 'x' : 'y';
+      }
+    }
+    if(locked !== 'x') return;
+    e.preventDefault();
+    dx = Math.max(maxSwipe, Math.min(0, rawDx));
+    item.style.transform = `translateX(${dx}px)`;
+  }
+  function onEnd(){
+    if(locked === 'x'){
+      item.style.transition = 'transform .2s ease';
+      item.style.transform = dx < maxSwipe / 2 ? `translateX(${maxSwipe}px)` : 'translateX(0)';
+    }
+    locked = null; dx = 0;
+  }
+
+  item.addEventListener('touchstart', onStart, {passive:true});
+  item.addEventListener('touchmove', onMove, {passive:false});
+  item.addEventListener('touchend', onEnd);
 }
 
 function renderNotes(notes){
