@@ -218,10 +218,12 @@
   .note-block ul{ margin:0; padding-left:18px; }
   .note-block li{ margin-bottom:4px; }
   .history-item{
-    display:flex; justify-content:space-between; padding:9px 0;
+    display:flex; align-items:center; gap:8px; padding:9px 0;
     border-bottom:1px solid var(--card-line); font-size:12.5px; color:var(--dim);
   }
+  .history-text{ flex:1; min-width:0; display:flex; justify-content:space-between; gap:8px; }
   .history-item b{ color:var(--ink); }
+  .del-history{ flex-shrink:0; color:var(--dim); background:none; border:none; font-size:16px; padding:2px 4px; }
   .empty{ font-size:12.5px; color:var(--dim); text-align:center; padding:14px 0; }
 </style>
 </head>
@@ -579,12 +581,22 @@ function renderModalHistory(id){
   const h = history[id] || [];
   const wrap = document.getElementById('modalHistory');
   if(h.length === 0){ wrap.innerHTML = '<div class="empty">No sessions logged yet for this exercise.</div>'; return; }
-  wrap.innerHTML = h.map(entry => {
+  wrap.innerHTML = h.map((entry, i) => {
     const d = new Date(entry.date);
     const dateStr = d.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'});
     const summary = entry.sets.map(s => s.weight > 0 ? `${s.weight}kg x ${s.reps}` : `${s.reps}s`).join(', ');
-    return `<div class="history-item"><span>${dateStr}</span><b style="text-align:right; max-width:60%;">${summary}</b></div>`;
+    return `<div class="history-item">
+      <div class="history-text"><span>${dateStr}</span><b style="text-align:right; max-width:60%;">${summary}</b></div>
+      <button class="del-history" onclick="deleteHistoryEntry('${id}', ${i})">&times;</button>
+    </div>`;
   }).join('');
+}
+
+async function deleteHistoryEntry(id, index){
+  if(!confirm('Delete this logged session? This can\'t be undone.')) return;
+  history[id].splice(index, 1);
+  await persistHistory();
+  renderModalHistory(id);
 }
 
 function renderNotes(notes){
