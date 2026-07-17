@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrainMore Tracker</title>
+<style>
+  html, body { height: 100%; margin: 0; background: #131316; }
+  :root{
+    --bg: #131316;
+    --card: #1b1b1f;
+    --card-line: #2c2c31;
+    --ink: #eeeeec;
+    --dim: #8d8d94;
+    --accent: #ef4b36;
+    --accent-dim: #3a2320;
+    --accent-secondary: #8a3a30;
+    --idle: #35353b;
+  }
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Helvetica Neue", Arial, sans-serif;
+    padding-bottom:60px;
+  }
+  header{
+    padding:24px 16px 14px;
+    border-bottom:1px solid var(--card-line);
+  }
+  .eyebrow{
+    font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--accent); font-weight:700; margin-bottom:6px;
+  }
+  h1{ font-size:24px; font-weight:800; letter-spacing:-0.01em; }
+  .day-toggle{
+    display:flex;
+    margin:16px 16px 0;
+    background:var(--card);
+    border:1px solid var(--card-line);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  .day-btn{
+    flex:1;
+    padding:11px 0;
+    text-align:center;
+    font-size:13px;
+    font-weight:700;
+    color:var(--dim);
+    background:none;
+    border:none;
+  }
+  .day-btn.active{ background:var(--accent-dim); color:var(--accent); }
+  .list{ padding:14px 16px 0; display:flex; flex-direction:column; gap:10px; }
+  .section-head{ padding:22px 16px 0; }
+  .section-head h2{ font-size:12px; letter-spacing:0.1em; text-transform:uppercase; font-weight:800; color:var(--dim); }
+  .section-head p{ font-size:11.5px; color:var(--dim); margin-top:4px; line-height:1.4; }
+
+  .ex-card{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:var(--card);
+    border:1px solid var(--card-line);
+    border-radius:10px;
+    padding:10px 12px;
+  }
+  .thumb{
+    width:52px; height:52px;
+    border-radius:8px;
+    background:#0f0f11;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .thumb svg{ width:34px; height:auto; }
+  .ex-info{ flex:1; min-width:0; }
+  .ex-name{ font-size:14.5px; font-weight:700; }
+  .ex-equip{ font-size:11px; color:var(--dim); margin-top:1px; }
+  .ex-badges{ display:flex; gap:6px; margin-top:5px; flex-wrap:wrap; }
+  .pill{
+    font-size:10px;
+    background:#26262b;
+    color:var(--dim);
+    padding:2px 7px;
+    border-radius:20px;
+  }
+  .pill.last{ background:var(--accent-dim); color:var(--accent); }
+  .chevron{ color:var(--dim); font-size:18px; }
+
+  /* detail page */
+  #detailView{ display:none; }
+  .detail-head{
+    display:flex; align-items:center; gap:10px;
+    padding:18px 16px 12px;
+    border-bottom:1px solid var(--card-line);
+  }
+  .back-btn, .info-btn{
+    width:32px; height:32px;
+    border-radius:50%;
+    border:1px solid var(--card-line);
+    background:none;
+    color:var(--ink);
+    font-size:16px;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .detail-title{ flex:1; min-width:0; }
+  .detail-title .ex-name{ font-size:17px; }
+  .detail-title .ex-equip{ font-size:12px; }
+
+  .sets-card{
+    margin:14px 16px 0;
+    background:var(--card);
+    border:1px solid var(--card-line);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  .set-row{
+    display:flex; align-items:center; gap:8px;
+    padding:12px 14px;
+    border-bottom:1px solid var(--card-line);
+  }
+  .set-num{ font-size:13px; color:var(--dim); width:16px; }
+  .field-group{ display:flex; flex-direction:column; }
+  .field-label{ font-size:9px; color:var(--dim); text-transform:uppercase; margin-bottom:3px; letter-spacing:0.06em; }
+  .field{
+    display:flex; align-items:center;
+    background:#0f0f11;
+    border-radius:6px;
+    border:1px solid var(--card-line);
+  }
+  .stepper-btn{ width:30px; height:30px; background:none; border:none; color:var(--ink); font-size:17px; font-weight:700; }
+  .field input{
+    width:44px; text-align:center; background:none; border:none;
+    color:var(--ink); font-size:14.5px; font-weight:700;
+  }
+  .field input::-webkit-outer-spin-button, .field input::-webkit-inner-spin-button{ -webkit-appearance:none; }
+  .del-set{ margin-left:auto; color:var(--dim); background:none; border:none; font-size:18px; padding:4px 6px; }
+  .add-set{ width:100%; padding:12px; background:none; border:none; color:var(--accent); font-size:13px; font-weight:700; }
+  .save-btn{
+    width:calc(100% - 32px);
+    margin:12px 16px 4px;
+    padding:14px; background:var(--accent); border:none; border-radius:8px;
+    color:#fff; font-size:14px; font-weight:700;
+  }
+  .save-confirm{
+    text-align:center; font-size:12px; color:var(--dim); padding:6px 16px 4px; min-height:18px;
+  }
+
+  /* modal */
+  .overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,0.6);
+    display:none; align-items:flex-end; z-index:20;
+  }
+  .overlay.open{ display:flex; }
+  .modal{
+    background:var(--card); width:100%; border-radius:16px 16px 0 0;
+    max-height:82vh; overflow-y:auto; padding-bottom:24px;
+  }
+  .modal-head{ display:flex; justify-content:space-between; align-items:center; padding:18px 16px 8px; }
+  .modal-head h2{ font-size:17px; font-weight:800; }
+  .close-btn{ width:30px; height:30px; border-radius:50%; border:none; background:#26262b; color:var(--ink); font-size:16px; }
+  .tabs{ display:flex; border-bottom:1px solid var(--card-line); padding:0 16px; }
+  .tab{ flex:1; text-align:center; padding:10px 0; font-size:13px; color:var(--dim); font-weight:600; border-bottom:2px solid transparent; }
+  .tab.active{ color:var(--accent); border-color:var(--accent); }
+  .tab-panel{ display:none; padding:16px; }
+  .tab-panel.active{ display:block; }
+  .tab-panel p{ font-size:13px; color:var(--dim); line-height:1.5; margin-bottom:10px; }
+
+  .figures{ display:flex; justify-content:center; gap:14px; margin-bottom:14px; background:#0c0c0e; border:1px solid var(--card-line); border-radius:10px; padding:14px 8px; }
+  .figures svg{ width:42%; max-width:145px; height:auto; }
+  .fig-cap{ text-align:center; font-size:9px; letter-spacing:0.06em; text-transform:uppercase; color:var(--dim); margin-top:4px; }
+  .fig-col{ display:flex; flex-direction:column; align-items:center; flex:1; }
+  .body-base{ fill:#232327; stroke:#38383e; stroke-width:1.4; }
+  .m-detail{ fill:none; stroke:#38383e; stroke-width:1.2; }
+  .region-primary{ fill:var(--accent) !important; }
+  .region-secondary{ fill:var(--accent-secondary) !important; }
+  .region-idle{ fill:#2d2d32 !important; }
+  .muscle-key{ font-size:12px; margin-bottom:4px; }
+  .muscle-key b{ color:var(--ink); }
+  .key-row{ display:flex; align-items:center; gap:6px; margin-bottom:6px; }
+  .dot{ width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+
+  .exec-seq{ display:flex; gap:10px; margin-bottom:14px; }
+  .exec-seq .exec-panel{ flex:1 1 100%; padding:20px 10px 10px; }
+  .exec-panel{
+    flex:1; background:#0c0c0e; border:1px solid var(--card-line);
+    border-radius:10px; padding:18px 6px 8px; position:relative;
+  }
+  .exec-panel svg{ width:100%; height:auto; }
+  .exec-num{
+    position:absolute; top:7px; left:7px;
+    width:18px; height:18px; border-radius:50%;
+    background:#2a2a2e; color:var(--ink);
+    font-size:10px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .exec-cap{ text-align:center; font-size:9px; letter-spacing:0.06em; text-transform:uppercase; color:var(--dim); margin-top:8px; }
+  .fig-line{ fill:none; stroke:#d8d8dc; stroke-width:3.4; stroke-linecap:round; stroke-linejoin:round; }
+  .fig-fill{ fill:#d8d8dc; }
+  .machine-line{ fill:none; stroke:#5c5c63; stroke-width:2.4; stroke-linecap:round; }
+  .path-indicator{ fill:none; stroke:var(--accent); stroke-width:2; stroke-dasharray:4 3; }
+  .m-outline{ fill:none; stroke:#5c5c63; stroke-width:2.2; }
+  .m-outline-thin{ fill:none; stroke:#5c5c63; stroke-width:1.4; }
+  .plate{ fill:#33333a; stroke:#5c5c63; stroke-width:1.4; }
+  .grip{ fill:var(--accent); }
+  .ghost{ fill:none; stroke:#4a4a51; stroke-width:1.6; stroke-dasharray:3 3; }
+  .grip-line{ stroke:var(--accent); }
+  .m-active{ fill:var(--accent); }
+  .m-idle{ fill:#3a3a40; }
+  .motion-arrow{ stroke:#6a6a70; stroke-width:1.4; fill:none; }
+
+  .history-list{ }
+  .notes-list{ display:flex; flex-direction:column; gap:10px; }
+  .note-block{ font-size:12.5px; color:var(--dim); line-height:1.5; }
+  .note-block b{ color:var(--ink); display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px; }
+  .note-block ul{ margin:0; padding-left:18px; }
+  .note-block li{ margin-bottom:4px; }
+  .history-item{
+    display:flex; justify-content:space-between; padding:9px 0;
+    border-bottom:1px solid var(--card-line); font-size:12.5px; color:var(--dim);
+  }
+  .history-item b{ color:var(--ink); }
+  .empty{ font-size:12.5px; color:var(--dim); text-align:center; padding:14px 0; }
+</style>
+</head>
+<body>
+
+<!-- HUB VIEW -->
+<div id="hubView">
+  <header>
+    <div class="eyebrow">TrainMore, 1e Middellandstraat</div>
+    <h1>Session Map</h1>
+  </header>
+  <div class="day-toggle">
+    <button class="day-btn active" id="dayBtnA" onclick="setDay('A')">Full Body A</button>
+    <button class="day-btn" id="dayBtnB" onclick="setDay('B')">Full Body B</button>
+  </div>
+  <div class="list" id="exerciseList"></div>
+  <div class="section-head">
+    <h2>Optional add-ins</h2>
+    <p>Not tied to a day, drop these into either session when you have the time.</p>
+  </div>
+  <div class="list" id="optionalList"></div>
+</div>
+
+<!-- DETAIL VIEW -->
+<div id="detailView">
+  <div class="detail-head">
+    <button class="back-btn" onclick="goHub()">&larr;</button>
+    <div class="detail-title">
+      <div class="ex-name" id="detailName"></div>
+      <div class="ex-equip" id="detailEquip"></div>
+    </div>
+    <button class="info-btn" onclick="openModal()">i</button>
+  </div>
+
+  <div class="sets-card">
+    <div id="setsList"></div>
+    <button class="add-set" onclick="addSet()">+ Add set</button>
+  </div>
+  <button class="save-btn" onclick="saveWorkout()">Save this session</button>
+  <div class="save-confirm" id="saveConfirm"></div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modalName"></h2>
+      <button class="close-btn" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="tabs">
+      <div class="tab active" data-tab="execution" onclick="switchTab('execution')">Execution</div>
+      <div class="tab" data-tab="muscles" onclick="switchTab('muscles')">Muscle groups</div>
+      <div class="tab" data-tab="notes" onclick="switchTab('notes')">Notes</div>
+      <div class="tab" data-tab="history" onclick="switchTab('history')">History</div>
+    </div>
+    <div class="tab-panel active" data-panel="execution">
+      <div class="exec-seq" id="movementSvg"></div>
+      <p id="cueText"></p>
+    </div>
+    <div class="tab-panel" data-panel="muscles">
+      <div class="figures" id="figuresWrap"></div>
+      <div class="muscle-key" id="muscleKey"></div>
+    </div>
+    <div class="tab-panel" data-panel="notes">
+      <div class="notes-list" id="notesList"></div>
+    </div>
+    <div class="tab-panel" data-panel="history">
+      <div class="history-list" id="modalHistory"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- DATA ---------- */
+
+const REGION_LABELS = {
+  chest:'Chest', frontDelt:'Front delts', biceps:'Biceps', abs:'Core',
+  quads:'Quads', lats:'Lats', upperBack:'Upper back', rearDelt:'Rear delts',
+  triceps:'Triceps', glutes:'Glutes', hamstrings:'Hamstrings', calves:'Calves'
+};
+
+const EXERCISES = [
+  { id:'chestPress', day:'A', name:'Chest Press', equip:'Smith machine or flat bench and barbell',
+    cue:"Press straight up, don't flare elbows past 75 degrees. Full stretch at the bottom.",
+    muscles:{primary:['chest'], secondary:['frontDelt','triceps']},
+    notes:{mistakes:["Elbows drifting above shoulder height shifts the work onto the front of your shoulder instead of your chest","Locking your elbows fully at the top dumps tension off the chest right when it should peak","Lower back arching off the pad to grind out a rep means the weight is too heavy for now"], angles:["Flat or neutral emphasizes the middle of your chest, this is your default","An incline around 30 degrees shifts emphasis to the upper chest. Steeper than that starts working the front delt more than the chest","Handles should line up with mid-chest when seated normally, not up near your collarbone"]},
+    movement:'chestPress', defaultSets:[{reps:10,weight:20},{reps:10,weight:20},{reps:10,weight:20},{reps:10,weight:20}] },
+
+  { id:'assistedPullUp', day:'A', name:'Assisted Pull-Up', equip:'Assisted pull-up and dip machine',
+    cue:"Set assistance so the last 2 reps feel hard, not impossible. Pull your chest to the bar, lead with the elbows down and back.",
+    muscles:{primary:['lats'], secondary:['upperBack','biceps','rearDelt']},
+    notes:{mistakes:["Shrugging your shoulders up toward your ears takes tension off your lats and puts it on your traps","Using momentum or bouncing at the bottom instead of a controlled dead hang start","Grip too wide feels stronger but shortens your range of motion, closer to shoulder width usually works better"], angles:["More assistance weight on the stack means less of your bodyweight you're lifting, this machine's numbers work in reverse from most others","If your gym's machine has a chin-up handle option (palms facing you), that shifts more work onto biceps, useful for variety later"]},
+    movement:'assistedPullUp', defaultSets:[{reps:8,weight:20},{reps:8,weight:20},{reps:8,weight:20}] },
+
+  { id:'singleArmRow', day:'A', name:'Single-Arm Cable Row', equip:'Cable crossover station, low pulley',
+    cue:"Pull elbow past your ribcage, squeeze the shoulder blade. Left arm does its full set before the right starts.",
+    muscles:{primary:['lats','upperBack'], secondary:['biceps']},
+    notes:{mistakes:["Rotating your torso to help pull the weight, the power should come from your back, not a twist","Shrugging the shoulder up instead of driving the elbow back and down","Leaning too far back at the finish, a slight lean is fine but this shouldn't turn into a full-body swing"], angles:["Low pulley pulls at a slight upward angle into your torso, good general setup for lats","A slightly higher pulley setting shifts emphasis a bit more toward the upper back and rear delt"]},
+    movement:'row', defaultSets:[{reps:11,weight:15},{reps:11,weight:15},{reps:11,weight:15},{reps:11,weight:15}] },
+
+  { id:'shoulderPress', day:'A', name:'Single-Arm Shoulder Press', equip:'Dumbbell, seated on adjustable bench',
+    cue:"Press straight overhead, don't let your torso lean to help. If it leans, the weight is too heavy.",
+    muscles:{primary:['frontDelt'], secondary:['triceps']},
+    notes:{mistakes:["Torso leaning to help push the weight up, if it leans, the weight is too heavy, not a stronger rep","Pressing the dumbbell forward instead of straight up puts extra stress on the shoulder joint","Not locking out fully at the top loses part of the range you're paying for"], angles:["Bench upright at 90 degrees is standard for this. Reclining it slightly shifts more work onto the upper chest and away from the shoulder, not what you want here"]},
+    movement:'shoulderPress', defaultSets:[{reps:11,weight:10},{reps:11,weight:10},{reps:11,weight:10}] },
+
+  { id:'legPress', day:'A', name:'Leg Press', equip:'Leg press machine',
+    cue:"Kept light on purpose, skating already loads your legs. This is maintenance, not a max effort lift.",
+    muscles:{primary:['quads'], secondary:['glutes','hamstrings']},
+    notes:{mistakes:["Lower back rounding off the pad at the bottom, a sign you've gone deeper than your hips can control safely","Locking your knees out fully at the top puts the stress on the joint instead of the muscle","Feet too low on the platform overloads the knees, too high overloads the lower back"], angles:["Feet placed higher and wider on the platform shifts more work to glutes and hamstrings","Feet placed lower and closer together shifts more work to the quads, which is the setup you want given your goal here"]},
+    movement:'legPress', defaultSets:[{reps:13,weight:60},{reps:13,weight:60}] },
+
+  { id:'rotatorCuff', day:'A', name:'Band Rotator Cuff and Core Finisher', equip:'Light resistance band, floor mat',
+    cue:"External rotation with elbow pinned to your side, then a plank or dead bug set. Left arm's band work first.",
+    muscles:{primary:['rearDelt'], secondary:['abs']},
+    notes:{mistakes:["Using a band heavy enough that your shoulder shrugs or your elbow drifts away from your ribs, this should feel light","Rotating from the shoulder joint too far, the elbow stays pinned, only the forearm rotates","Rushing through it, this is a small stabilizing muscle group, slow and controlled is the whole point"], angles:["Anchor point at roughly elbow height keeps the resistance in the right plane for this movement"]},
+    movement:'rotatorCuff', defaultSets:[{reps:15,weight:0},{reps:15,weight:0}] },
+
+  { id:'assistedDip', day:'B', name:'Assisted Dip', equip:'Assisted pull-up and dip machine',
+    cue:"Lean forward slightly to bias chest over triceps. Lower until your shoulders dip below your elbows, press back up.",
+    muscles:{primary:['chest','triceps'], secondary:['frontDelt']},
+    notes:{mistakes:["Staying too upright shifts the work almost entirely onto triceps, missing the chest emphasis you want","Lowering too fast or too deep can strain the front of the shoulder, control the descent","Flaring elbows out wide instead of keeping them tucked toward your body puts more stress on the shoulder joint"], angles:["Leaning your torso forward biases chest over triceps, which is what you're after here","Staying upright with elbows tucked close shifts the same movement toward triceps instead, useful to know if you ever want a triceps-focused variation"]},
+    movement:'dip', defaultSets:[{reps:9,weight:25},{reps:9,weight:25},{reps:9,weight:25}] },
+
+  { id:'pecFly', day:'A', name:'Pec Fly', equip:'Pec deck machine',
+    cue:"Slight bend in elbow throughout, think about hugging a tree. Slow on the way back.",
+    muscles:{primary:['chest'], secondary:['frontDelt']},
+    notes:{mistakes:["This is the most common failure point on this machine, if you only feel your shoulders, it's almost always the seat height, not something you're doing wrong technique-wise","Letting your elbows travel behind your torso at the bottom overstretches the front of the shoulder joint","Using momentum to slam the pads together instead of a slow, controlled squeeze"], angles:["The parallel rule: seated normally with handles gripped, your upper arms should be parallel to the floor, elbows roughly level with your shoulders, not above or below","If elbows sit above your shoulders the seat is too low, if they sit below it's too high, this machine has one correct position rather than several angle options"]},
+    movement:'pecFly', defaultSets:[{reps:13,weight:15},{reps:13,weight:15},{reps:13,weight:15}] },
+
+  { id:'cableCrossover', day:'B', name:'Single-Arm Cable Crossover', equip:'Cable tower, high pulley, single handle',
+    cue:"Pulley set high. Twist slightly away from the machine, then punch the handle diagonally across your body toward your opposite hip, slight bend in the elbow, squeeze your chest hard at the bottom. Left arm goes first.",
+    muscles:{primary:['chest'], secondary:['frontDelt']},
+    notes:{mistakes:["Losing the slight elbow bend and turning it into a straight-arm swing shifts stress onto the elbow joint instead of the chest","Rotating your torso too far, the power comes from the chest squeezing, not from spinning your hips","Standing too close to the machine means not enough tension at the starting stretch"], angles:["Pulley high, pulling down and across to your opposite hip (your current setup) emphasizes the lower chest","Pulley low, pulling up and across toward the opposite shoulder emphasizes the upper chest instead","Pulley at shoulder height, pulling straight across, hits the middle of the chest, the most neutral version. Worth alternating pulley height by session for more complete development over time"]},
+    movement:'cableCrossover', defaultSets:[{reps:12,weight:7.5},{reps:12,weight:7.5},{reps:12,weight:7.5}] },
+
+  { id:'latPulldown', day:'B', name:'Lat Pulldown', equip:'Cable tower, wide bar attachment, seated',
+    cue:"Pull the bar to your upper chest, elbows driving down and slightly back. Chest stays up, don't lean back to muscle it down.",
+    muscles:{primary:['lats'], secondary:['upperBack','biceps']},
+    notes:{mistakes:["Leaning back and using body momentum to muscle the bar down instead of pulling with your back","Pulling the bar behind your neck instead of to your upper chest, this puts unnecessary strain on the shoulder","Grip too narrow shifts more work onto biceps and away from lats"], angles:["Wide overhand grip biases the lats through a broad range","A narrower or reverse grip shifts more emphasis onto the lower lats and biceps, a useful variation later on"]},
+    movement:'latPulldown', defaultSets:[{reps:11,weight:35},{reps:11,weight:35},{reps:11,weight:35}] },
+
+  { id:'facePull', day:'B', name:'Face Pull', equip:'Cable crossover, rope attachment, chest height',
+    cue:"Pull the rope to your forehead, elbows finish high and wide. Good counterbalance to a chest heavy session.",
+    muscles:{primary:['rearDelt','upperBack'], secondary:[]},
+    notes:{mistakes:["Pulling with the arms alone instead of driving the elbows back and high, this should feel like squeezing your shoulder blades together","Letting the elbows drop below shoulder height turns this into more of a row than a face pull","Using too much weight, which forces you to lean back and lose the posture-correcting purpose of the exercise"], angles:["Pulley set at roughly eye or forehead height keeps the pulling angle correct for rear delts and upper back"]},
+    movement:'facePull', defaultSets:[{reps:15,weight:10},{reps:15,weight:10}] },
+
+  { id:'bulgarianSplitSquat', day:'B', name:'Bulgarian Split Squat', equip:'Flat bench, pair of dumbbells',
+    cue:"Rear foot laces down on the bench, front knee tracks over the toes. Skating already asks a lot of one stance, this evens it out.",
+    muscles:{primary:['quads','glutes'], secondary:['hamstrings']},
+    notes:{mistakes:["Front knee caving inward instead of tracking over your toes, a common early wobble as you learn the balance","Rear foot too close to the front foot cramps your range, give yourself a longer stride than feels natural at first","Leaning too far forward shifts the work toward the knee instead of the glute"], angles:["A more upright torso emphasizes the quad more","Leaning the torso forward slightly shifts more emphasis onto the glute, worth trying both once the balance feels solid"]},
+    movement:'splitSquat', defaultSets:[{reps:9,weight:10},{reps:9,weight:10},{reps:9,weight:10}] },
+
+  { id:'pallofPress', day:'B', name:'Pallof Press', equip:'Cable tower, low or mid pulley, standing in place',
+    cue:"Stand side on to the anchor, press the handle straight out and hold. Resist the pull trying to rotate you, don't let your torso twist.",
+    muscles:{primary:['abs'], secondary:['frontDelt']},
+    notes:{mistakes:["Hips or shoulders rotating toward the cable, the entire point is that nothing moves except your arms","Holding your breath through the hold instead of breathing steadily while staying braced","Standing too close to the anchor, not enough distance means not enough resistance to actually challenge the anti-rotation"], angles:["Pulley at chest height is standard and keeps the resisting force in a straight line through your core"]},
+    movement:'pallof', defaultSets:[{reps:12,weight:10},{reps:12,weight:10}] },
+
+  { id:'plank', day:'B', name:'Plank, Alternating with Side Plank', equip:'Floor mat',
+    cue:"Straight line from shoulders to heels, no sagging hips. Alternate a front plank with a side plank on each side.",
+    muscles:{primary:['abs'], secondary:[]},
+    notes:{mistakes:["Hips sagging toward the floor as fatigue sets in, this is usually the first sign it's time to stop the set","Hips piked up too high reduces how much your core actually has to work","Holding your breath instead of breathing steadily through the hold"], angles:["Elbows directly under your shoulders, not out in front, keeps the load on your core rather than your shoulders","For the side plank, stacking hips and feet directly on top of each other keeps the obliques doing the work rather than your legs"]},
+    movement:'plank', defaultSets:[{reps:0,weight:0},{reps:0,weight:0},{reps:0,weight:0}] },
+
+  { id:'calfRaise', day:'both', optional:true, name:'Standing Calf Raise', equip:'Standing calf raise machine',
+    cue:"Kept light on purpose since skating already works your calves often. Full stretch at the bottom, pause at the top, controlled tempo, not bouncy.",
+    muscles:{primary:['calves'], secondary:[]},
+    notes:{mistakes:["Bouncing at the bottom instead of a controlled stretch, this is a small muscle group that responds better to control than speed","Cutting the range short, both the stretch at the bottom and the pause at the top matter here","Letting your knees bend to help push, keep them soft but essentially straight throughout"], angles:["Toes pointed straight ahead is the standard setup and works the calf as a whole","Toes turned slightly inward or outward shifts emphasis between the inner and outer calf muscle, not necessary right now but useful variety later"]},
+    movement:'calfRaise', defaultSets:[{reps:15,weight:10},{reps:15,weight:10}] },
+];
+
+let currentDay = 'A';
+let currentExerciseId = null;
+let sets = [];
+let history = {}; // { exerciseId: [ {date, sets:[...]} , ... ] }
+
+/* ---------- STORAGE ---------- */
+
+function loadHistory(){
+  try{
+    const raw = localStorage.getItem('workout-history');
+    history = raw ? JSON.parse(raw) : {};
+  }catch(e){ history = {}; }
+}
+
+function persistHistory(){
+  try{
+    localStorage.setItem('workout-history', JSON.stringify(history));
+  }catch(e){ console.error('save failed', e); }
+}
+
+/* ---------- MINI ICON (hub thumbnail) ---------- */
+
+function miniIcon(exercise){
+  const p = exercise.muscles.primary;
+  const c = r => p.includes(r) ? 'm-active' : 'm-idle';
+  return `<svg viewBox="0 0 100 140">
+    <circle cx="50" cy="18" r="12" class="m-outline"/>
+    <path d="M38 34 L62 34 L65 62 L35 62 Z" class="m-outline"/>
+    <path d="M38 38 Q50 46 50 56 L50 60 L40 60 Z" class="${c('chest')}"/>
+    <path d="M62 38 Q50 46 50 56 L50 60 L60 60 Z" class="${c('chest')}"/>
+    <circle cx="33" cy="38" r="6" class="${c('frontDelt')}"/>
+    <circle cx="67" cy="38" r="6" class="${c('frontDelt')}"/>
+    <rect x="24" y="42" width="8" height="30" rx="4" class="${c('biceps')}"/>
+    <rect x="68" y="42" width="8" height="30" rx="4" class="${c('biceps')}"/>
+    <rect x="40" y="62" width="20" height="30" rx="4" class="${c('abs')}"/>
+    <rect x="38" y="92" width="9" height="42" rx="4" class="${c('quads')}"/>
+    <rect x="53" y="92" width="9" height="42" rx="4" class="${c('quads')}"/>
+  </svg>`;
+}
+
+/* ---------- HUB RENDER ---------- */
+
+function setDay(day){
+  currentDay = day;
+  document.getElementById('dayBtnA').classList.toggle('active', day==='A');
+  document.getElementById('dayBtnB').classList.toggle('active', day==='B');
+  renderHub();
+}
+
+function cardHtml(e){
+  const h = history[e.id] || [];
+  const last = h[0];
+  let lastPill = '';
+  if(last){
+    const top = last.sets.reduce((a,b)=> b.weight > a.weight ? b : a, last.sets[0]);
+    lastPill = top.weight > 0 ? `<span class="pill last">Last ${top.weight}kg</span>` : `<span class="pill last">Logged</span>`;
+  }
+  return `
+    <div class="ex-card" onclick="openDetail('${e.id}')">
+      <div class="thumb">${miniIcon(e)}</div>
+      <div class="ex-info">
+        <div class="ex-name">${e.name}</div>
+        <div class="ex-equip">${e.equip}</div>
+        <div class="ex-badges">
+          <span class="pill">${e.defaultSets.length} sets</span>
+          ${lastPill}
+        </div>
+      </div>
+      <div class="chevron">&rsaquo;</div>
+    </div>`;
+}
+
+function renderHub(){
+  const list = document.getElementById('exerciseList');
+  const items = EXERCISES.filter(e => (e.day === currentDay || e.day === 'both') && !e.optional);
+  list.innerHTML = items.map(cardHtml).join('');
+
+  const optList = document.getElementById('optionalList');
+  const optItems = EXERCISES.filter(e => e.optional);
+  optList.innerHTML = optItems.map(cardHtml).join('');
+}
+
+/* ---------- DETAIL VIEW ---------- */
+
+function openDetail(id){
+  currentExerciseId = id;
+  const e = EXERCISES.find(x => x.id === id);
+  const h = history[id] || [];
+  sets = h[0] ? JSON.parse(JSON.stringify(h[0].sets)) : JSON.parse(JSON.stringify(e.defaultSets));
+
+  document.getElementById('detailName').textContent = e.name;
+  document.getElementById('detailEquip').textContent = e.equip;
+  document.getElementById('modalName').textContent = e.name;
+  document.getElementById('cueText').textContent = e.cue;
+  document.getElementById('saveConfirm').textContent = '';
+
+  renderSets();
+  renderMovement(e.movement);
+  renderMuscles(e.muscles);
+  renderModalHistory(id);
+  renderNotes(e.notes);
+
+  document.getElementById('hubView').style.display = 'none';
+  document.getElementById('detailView').style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+function goHub(){
+  document.getElementById('detailView').style.display = 'none';
+  document.getElementById('hubView').style.display = 'block';
+  renderHub();
+}
+
+function renderSets(){
+  const isTimeBased = sets.every(s => s.weight === 0) && currentExerciseId === 'plank';
+  const list = document.getElementById('setsList');
+  list.innerHTML = sets.map((s,i) => `
+    <div class="set-row">
+      <div class="set-num">${i+1}</div>
+      <div class="field-group">
+        <div class="field-label">${isTimeBased ? 'Seconds' : 'Reps'}</div>
+        <div class="field">
+          <button class="stepper-btn" onclick="adjust(${i},'reps',-1)">-</button>
+          <input type="number" inputmode="numeric" value="${s.reps}" onchange="setVal(${i},'reps',this.value)">
+          <button class="stepper-btn" onclick="adjust(${i},'reps',1)">+</button>
+        </div>
+      </div>
+      ${!isTimeBased ? `
+      <div class="field-group">
+        <div class="field-label">Weight, kg</div>
+        <div class="field">
+          <button class="stepper-btn" onclick="adjust(${i},'weight',-2.5)">-</button>
+          <input type="number" inputmode="decimal" value="${s.weight}" onchange="setVal(${i},'weight',this.value)">
+          <button class="stepper-btn" onclick="adjust(${i},'weight',2.5)">+</button>
+        </div>
+      </div>` : ''}
+      <button class="del-set" onclick="removeSet(${i})">&times;</button>
+    </div>
+  `).join('');
+}
+
+function adjust(i, field, delta){
+  sets[i][field] = Math.max(0, sets[i][field] + delta);
+  renderSets();
+}
+function setVal(i, field, val){
+  sets[i][field] = parseFloat(val) || 0;
+  renderSets();
+}
+function addSet(){
+  const last = sets[sets.length-1] || {reps:10, weight:10};
+  sets.push({reps:last.reps, weight:last.weight});
+  renderSets();
+}
+function removeSet(i){
+  if(sets.length <= 1) return;
+  sets.splice(i,1);
+  renderSets();
+}
+
+async function saveWorkout(){
+  const entry = { date: new Date().toISOString(), sets: JSON.parse(JSON.stringify(sets)) };
+  if(!history[currentExerciseId]) history[currentExerciseId] = [];
+  history[currentExerciseId].unshift(entry);
+  await persistHistory();
+  renderModalHistory(currentExerciseId);
+  const conf = document.getElementById('saveConfirm');
+  conf.textContent = 'Saved, this stays in your history from now on.';
+  setTimeout(()=>{ conf.textContent=''; }, 2500);
+}
+
+/* ---------- MODAL ---------- */
+
+function openModal(){ document.getElementById('overlay').classList.add('open'); }
+function closeModal(){ document.getElementById('overlay').classList.remove('open'); }
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab===name));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel===name));
+}
+
+function renderModalHistory(id){
+  const h = history[id] || [];
+  const wrap = document.getElementById('modalHistory');
+  if(h.length === 0){ wrap.innerHTML = '<div class="empty">No sessions logged yet for this exercise.</div>'; return; }
+  wrap.innerHTML = h.map(entry => {
+    const d = new Date(entry.date);
+    const dateStr = d.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'});
+    const summary = entry.sets.map(s => s.weight > 0 ? `${s.weight}kg x ${s.reps}` : `${s.reps}s`).join(', ');
+    return `<div class="history-item"><span>${dateStr}</span><b style="text-align:right; max-width:60%;">${summary}</b></div>`;
+  }).join('');
+}
+
+function renderNotes(notes){
+  const wrap = document.getElementById('notesList');
+  if(!notes){ wrap.innerHTML = '<div class="empty">No notes for this one yet.</div>'; return; }
+  const mistakesHtml = notes.mistakes && notes.mistakes.length
+    ? `<div class="note-block"><b>Watch for</b><ul>${notes.mistakes.map(m=>`<li>${m}</li>`).join('')}</ul></div>` : '';
+  const anglesHtml = notes.angles && notes.angles.length
+    ? `<div class="note-block"><b>Seat and angle effects</b><ul>${notes.angles.map(a=>`<li>${a}</li>`).join('')}</ul></div>` : '';
+  wrap.innerHTML = mistakesHtml + anglesHtml || '<div class="empty">No notes for this one yet.</div>';
+}
+
+/* ---------- MUSCLE FIGURES ---------- */
+
+function renderMuscles(muscles){
+  const cls = region => muscles.primary.includes(region) ? 'region-primary'
+    : muscles.secondary.includes(region) ? 'region-secondary' : 'region-idle';
+
+  const front = `
+  <svg viewBox="0 0 140 280">
+    <path class="body-base" d="M70 14 a17 17 0 1 0 0.1 0 Z M50 48 Q70 40 90 48 L98 70 L104 96 L100 100 L92 78 L90 100 L92 150 L88 210 L94 268 L82 268 L78 200 L70 160 L62 200 L58 268 L46 268 L52 210 L48 150 L50 100 L48 78 L40 100 L36 96 L42 70 Z"/>
+    <path d="M52 54 Q70 64 70 82 L70 96 L54 96 Z" class="${cls('chest')}"/>
+    <path d="M88 54 Q70 64 70 82 L70 96 L86 96 Z" class="${cls('chest')}"/>
+    <line x1="70" y1="60" x2="70" y2="96" class="m-detail"/>
+    <path d="M42 52 Q34 58 34 70 Q42 74 50 68 Q48 58 42 52 Z" class="${cls('frontDelt')}"/>
+    <path d="M98 52 Q106 58 106 70 Q98 74 90 68 Q92 58 98 52 Z" class="${cls('frontDelt')}"/>
+    <path d="M32 72 Q26 90 30 110 Q38 112 42 108 Q40 88 40 74 Z" class="${cls('biceps')}"/>
+    <path d="M108 72 Q114 90 110 110 Q102 112 98 108 Q100 88 100 74 Z" class="${cls('biceps')}"/>
+    <rect x="58" y="100" width="10" height="10" rx="2" class="${cls('abs')}"/>
+    <rect x="72" y="100" width="10" height="10" rx="2" class="${cls('abs')}"/>
+    <rect x="58" y="113" width="10" height="10" rx="2" class="${cls('abs')}"/>
+    <rect x="72" y="113" width="10" height="10" rx="2" class="${cls('abs')}"/>
+    <rect x="58" y="126" width="10" height="10" rx="2" class="${cls('abs')}"/>
+    <rect x="72" y="126" width="10" height="10" rx="2" class="${cls('abs')}"/>
+    <path d="M50 100 L56 100 L54 138 L48 136 Z" class="${cls('abs')}"/>
+    <path d="M90 100 L84 100 L86 138 L92 136 Z" class="${cls('abs')}"/>
+    <path d="M55 150 Q58 190 54 230 L68 230 L67 150 Z" class="${cls('quads')}"/>
+    <path d="M85 150 Q82 190 86 230 L72 230 L73 150 Z" class="${cls('quads')}"/>
+    <line x1="61" y1="155" x2="59" y2="228" class="m-detail"/>
+    <line x1="79" y1="155" x2="81" y2="228" class="m-detail"/>
+  </svg>`;
+
+  const back = `
+  <svg viewBox="0 0 140 280">
+    <path class="body-base" d="M70 14 a17 17 0 1 0 0.1 0 Z M50 48 Q70 40 90 48 L98 70 L104 96 L100 100 L92 78 L90 100 L92 150 L88 210 L94 268 L82 268 L78 200 L70 160 L62 200 L58 268 L46 268 L52 210 L48 150 L50 100 L48 78 L40 100 L36 96 L42 70 Z"/>
+    <path d="M62 46 L78 46 L88 78 L70 96 L52 78 Z" class="${cls('upperBack')}"/>
+    <path d="M40 74 Q30 100 34 130 Q46 138 58 128 Q54 100 52 80 Z" class="${cls('lats')}"/>
+    <path d="M100 74 Q110 100 106 130 Q94 138 82 128 Q86 100 88 80 Z" class="${cls('lats')}"/>
+    <path d="M42 52 Q34 58 34 70 Q42 74 50 68 Q48 58 42 52 Z" class="${cls('rearDelt')}"/>
+    <path d="M98 52 Q106 58 106 70 Q98 74 90 68 Q92 58 98 52 Z" class="${cls('rearDelt')}"/>
+    <path d="M32 72 Q26 90 30 110 Q38 112 42 108 Q40 88 40 74 Z" class="${cls('triceps')}"/>
+    <path d="M108 72 Q114 90 110 110 Q102 112 98 108 Q100 88 100 74 Z" class="${cls('triceps')}"/>
+    <rect x="56" y="100" width="28" height="38" rx="6" class="region-idle"/>
+    <line x1="70" y1="104" x2="70" y2="134" class="m-detail"/>
+    <path d="M54 140 Q70 132 86 140 Q88 158 82 172 Q70 178 58 172 Q52 158 54 140 Z" class="${cls('glutes')}"/>
+    <line x1="70" y1="142" x2="70" y2="172" class="m-detail"/>
+    <path d="M56 178 Q58 200 55 224 L68 224 L67 178 Z" class="${cls('hamstrings')}"/>
+    <path d="M84 178 Q82 200 85 224 L72 224 L73 178 Z" class="${cls('hamstrings')}"/>
+    <path d="M55 232 Q58 250 56 266 L66 266 L65 232 Z" class="${cls('calves')}"/>
+    <path d="M85 232 Q82 250 84 266 L74 266 L75 232 Z" class="${cls('calves')}"/>
+  </svg>`;
+
+  document.getElementById('figuresWrap').innerHTML =
+    `<div class="fig-col">${front}<div class="fig-cap">Front</div></div>
+     <div class="fig-col">${back}<div class="fig-cap">Back</div></div>`;
+
+  const key = document.getElementById('muscleKey');
+  key.innerHTML = `
+    <div class="key-row"><div class="dot" style="background:var(--accent);"></div><b>Main:</b>&nbsp;${muscles.primary.map(r=>REGION_LABELS[r]).join(', ') || 'none'}</div>
+    <div class="key-row"><div class="dot" style="background:var(--accent-secondary);"></div><b>Secondary:</b>&nbsp;${muscles.secondary.map(r=>REGION_LABELS[r]).join(', ') || 'none'}</div>
+  `;
+}
+
+/* ---------- MOVEMENT DIAGRAMS ---------- */
+
+function renderMovement(kind){
+  const machines = {
+    chestPress: `
+      <rect x="34" y="96" width="120" height="14" rx="3" class="m-outline"/>
+      <line x1="42" y1="99" x2="42" y2="107" class="m-outline-thin"/>
+      <line x1="55" y1="99" x2="55" y2="107" class="m-outline-thin"/>
+      <line x1="68" y1="99" x2="68" y2="107" class="m-outline-thin"/>
+      <line x1="81" y1="99" x2="81" y2="107" class="m-outline-thin"/>
+      <line x1="46" y1="110" x2="46" y2="132" class="m-outline-thin"/>
+      <line x1="140" y1="110" x2="140" y2="132" class="m-outline-thin"/>
+      <rect x="14" y="70" width="30" height="14" rx="3" class="m-outline" transform="rotate(-22 29 77)"/>
+      <circle cx="22" cy="90" r="2.5" class="m-outline-thin"/>
+      <line x1="50" y1="108" x2="50" y2="24" class="m-outline"/>
+      <line x1="56" y1="108" x2="56" y2="24" class="m-outline-thin"/>
+      <line x1="164" y1="108" x2="164" y2="24" class="m-outline"/>
+      <line x1="158" y1="108" x2="158" y2="24" class="m-outline-thin"/>
+      <rect x="46" y="18" width="14" height="8" rx="2" class="m-outline"/>
+      <rect x="154" y="18" width="14" height="8" rx="2" class="m-outline"/>
+      <rect x="46" y="48" width="14" height="10" rx="2" class="m-outline-thin"/>
+      <rect x="154" y="48" width="14" height="10" rx="2" class="m-outline-thin"/>
+      <line x1="53" y1="53" x2="161" y2="53" class="grip-line" stroke-width="5"/>
+      <circle cx="46" cy="53" r="13" class="plate"/>
+      <circle cx="46" cy="53" r="6" class="m-outline-thin"/>
+      <circle cx="168" cy="53" r="13" class="plate"/>
+      <circle cx="168" cy="53" r="6" class="m-outline-thin"/>
+      <line x1="10" y1="132" x2="210" y2="132" class="m-outline-thin"/>`,
+
+    assistedPullUp: `
+      <line x1="40" y1="10" x2="40" y2="140" class="m-outline"/>
+      <line x1="160" y1="10" x2="160" y2="140" class="m-outline"/>
+      <line x1="40" y1="18" x2="160" y2="18" class="grip-line" stroke-width="5"/>
+      <rect x="70" y="90" width="60" height="14" rx="4" class="m-outline"/>
+      <line x1="76" y1="104" x2="76" y2="130" class="m-outline-thin"/>
+      <line x1="124" y1="104" x2="124" y2="130" class="m-outline-thin"/>
+      <rect x="160" y="30" width="14" height="8" rx="1" class="plate"/>
+      <rect x="160" y="40" width="14" height="8" rx="1" class="plate"/>
+      <rect x="160" y="50" width="14" height="8" rx="1" class="plate"/>
+      <circle cx="167" cy="45" r="2" class="grip"/>
+      <line x1="10" y1="130" x2="210" y2="130" class="m-outline-thin"/>`,
+
+    row: `
+      <line x1="20" y1="10" x2="20" y2="130" class="m-outline"/>
+      <line x1="34" y1="10" x2="34" y2="130" class="m-outline-thin"/>
+      <rect x="20" y="20" width="14" height="8" rx="1" class="plate"/>
+      <rect x="20" y="30" width="14" height="8" rx="1" class="plate"/>
+      <rect x="20" y="40" width="14" height="8" rx="1" class="plate"/>
+      <rect x="20" y="50" width="14" height="8" rx="1" class="plate"/>
+      <rect x="20" y="60" width="14" height="8" rx="1" class="plate"/>
+      <circle cx="27" cy="55" r="2" class="grip"/>
+      <circle cx="27" cy="92" r="9" class="m-outline"/>
+      <circle cx="27" cy="92" r="2" class="m-outline-thin"/>
+      <line x1="34" y1="92" x2="150" y2="66" class="m-outline-thin"/>
+      <path d="M150 58 Q168 66 150 74" fill="none" class="grip-line" stroke-width="4"/>
+      <line x1="10" y1="130" x2="210" y2="130" class="m-outline-thin"/>`,
+
+    shoulderPress: `
+      <rect x="60" y="34" width="16" height="64" rx="3" class="m-outline"/>
+      <circle cx="82" cy="40" r="1.6" class="m-outline-thin"/>
+      <circle cx="82" cy="52" r="1.6" class="m-outline-thin"/>
+      <circle cx="82" cy="64" r="1.6" class="m-outline-thin"/>
+      <circle cx="82" cy="76" r="1.6" class="m-outline-thin"/>
+      <rect x="60" y="98" width="76" height="10" rx="3" class="m-outline"/>
+      <line x1="70" y1="108" x2="70" y2="130" class="m-outline-thin"/>
+      <line x1="128" y1="108" x2="128" y2="130" class="m-outline-thin"/>
+      <line x1="150" y1="34" x2="170" y2="34" class="grip-line" stroke-width="5"/>
+      <polygon points="144,34 150,27 156,34 150,41" class="plate"/>
+      <polygon points="164,34 170,27 176,34 170,41" class="plate"/>
+      <line x1="154" y1="31" x2="154" y2="37" class="m-outline-thin"/>
+      <line x1="158" y1="31" x2="158" y2="37" class="m-outline-thin"/>
+      <line x1="162" y1="31" x2="162" y2="37" class="m-outline-thin"/>
+      <line x1="10" y1="130" x2="210" y2="130" class="m-outline-thin"/>`,
+
+    legPress: `
+      <rect x="10" y="80" width="80" height="14" rx="3" class="m-outline" transform="rotate(-16 50 87)"/>
+      <rect x="14" y="52" width="16" height="60" rx="3" class="m-outline" transform="rotate(-16 22 82)"/>
+      <line x1="70" y1="60" x2="190" y2="10" class="m-outline"/>
+      <line x1="76" y1="90" x2="196" y2="40" class="m-outline"/>
+      <circle cx="130" cy="42" r="4" class="m-outline-thin"/>
+      <circle cx="130" cy="70" r="4" class="m-outline-thin"/>
+      <rect x="176" y="4" width="16" height="50" rx="3" class="grip" transform="rotate(-16 184 29)"/>
+      <line x1="180" y1="12" x2="188" y2="10" class="m-outline-thin" transform="rotate(-16 184 29)"/>
+      <line x1="180" y1="22" x2="188" y2="20" class="m-outline-thin" transform="rotate(-16 184 29)"/>
+      <line x1="180" y1="32" x2="188" y2="30" class="m-outline-thin" transform="rotate(-16 184 29)"/>
+      <rect x="18" y="118" width="10" height="6" rx="1" class="plate"/>
+      <rect x="30" y="118" width="10" height="6" rx="1" class="plate"/>
+      <line x1="10" y1="130" x2="210" y2="130" class="m-outline-thin"/>`,
+
+    rotatorCuff: `
+      <rect x="12" y="86" width="18" height="18" rx="2" class="m-outline"/>
+      <circle cx="21" cy="95" r="2" class="m-outline-thin"/>
+      <path d="M30 92 Q60 70 90 88 Q120 106 150 84 Q170 70 186 78" fill="none" class="grip-line" stroke-width="4"/>
+      <ellipse cx="188" cy="80" rx="6" ry="9" class="grip" transform="rotate(20 188 80)"/>
+      <rect x="20" y="112" width="160" height="14" rx="6" class="m-outline"/>
+      <line x1="30" y1="112" x2="30" y2="126" class="m-outline-thin"/>
+      <line x1="45" y1="112" x2="45" y2="126" class="m-outline-thin"/>
+      <line x1="60" y1="112" x2="60" y2="126" class="m-outline-thin"/>
+      <line x1="75" y1="112" x2="75" y2="126" class="m-outline-thin"/>`,
+
+    dip: `
+      <line x1="60" y1="10" x2="60" y2="140" class="m-outline"/>
+      <line x1="140" y1="10" x2="140" y2="140" class="m-outline"/>
+      <line x1="40" y1="40" x2="90" y2="40" class="grip-line" stroke-width="5"/>
+      <line x1="110" y1="40" x2="160" y2="40" class="grip-line" stroke-width="5"/>
+      <rect x="70" y="90" width="60" height="14" rx="4" class="m-outline"/>
+      <line x1="76" y1="104" x2="76" y2="130" class="m-outline-thin"/>
+      <line x1="124" y1="104" x2="124" y2="130" class="m-outline-thin"/>
+      <rect x="140" y="55" width="14" height="8" rx="1" class="plate"/>
+      <rect x="140" y="65" width="14" height="8" rx="1" class="plate"/>
+      <rect x="140" y="75" width="14" height="8" rx="1" class="plate"/>
+      <circle cx="147" cy="70" r="2" class="grip"/>
+      <line x1="10" y1="130" x2="210" y2="130" class="m-outline-thin"/>`,
+
+    pecFly: `
+      <rect x="96" y="18" width="20" height="72" rx="3" class="m-outline"/>
+      <line x1="100" y1="24" x2="100" y2="86" class="m-outline-thin"/>
+      <line x1="112" y1="24" x2="112" y2="86" class="m-outline-thin"/>
+      <rect x="82" y="88" width="50" height="10" rx="2" class="m-outline"/>
+      <line x1="106" y1="90" x2="106" y2="128" class="m-outline-thin"/>
+      <circle cx="106" cy="108" r="1.6" class="m-outline-thin"/>
+      <circle cx="106" cy="116" r="1.6" class="m-outline-thin"/>
+      <circle cx="96" cy="52" r="3" class="m-outline-thin"/>
+      <circle cx="116" cy="52" r="3" class="m-outline-thin"/>
+      <path d="M96 52 Q50 55 30 74" class="m-outline" fill="none"/>
+      <path d="M116 52 Q162 55 182 74" class="m-outline" fill="none"/>
+      <rect x="18" y="66" width="16" height="24" rx="4" class="grip" transform="rotate(-18 26 66)"/>
+      <rect x="176" y="66" width="16" height="24" rx="4" class="grip" transform="rotate(18 184 66)"/>
+      <line x1="10" y1="128" x2="210" y2="128" class="m-outline-thin"/>`,
+
+    cableCrossover: `
+      <line x1="20" y1="10" x2="20" y2="130" class="m-outline"/>
+      <line x1="34" y1="10" x2="34" y2="130" class="m-outline-thin"/>
+      <rect x="20" y="20" width="14" height="8" rx="1" class="plate"/>
+      <rect x="20" y="30" width="14" height="8" rx="1" class="plate"/>
+      <rect x="20" y="40" width="14" height="8" rx="1" class="plate"/>
+      <circle cx="27" cy="40" r="9" class="m-outline"/>
+      <line x1="36" y1="40" x2="150" y2="90" class="m-outline-thin"/>
+      <rect x="150" y="86" width="18" height="16" rx="4" class="grip" transform="rotate(30 159 94)"/>
+      <line x1="10" y1="130" x2="210" y2="130" class="m-outline-thin"/>`,
+
+    facePull: `
+      <line x1="20" y1="10" x2="20" y2="130" class="m-outline"/>
+      <line x1="34" y1="10" x2="34" y2="130" class="m-outline-thin"/>
+      <rect x="20" y="20" width="14" height="8" rx="1" class="plate"/>
+      <rect x="20" y="30" width="14" height="8" rx="1" class="plate"/>
+      <rect x="20" y="40" width="14" height="8" rx="1" class="plate"/>
+      <circle cx="27" cy="65" r="9" class="m-outline"/>
+      <line x1="34" y1="65" x2="150" y2="60" class="m-outline-thin"/>
+      <line x1="150" y1="60" x2="164" y2="50" class="grip-line" stroke-width="3"/>
+      <line x1="150" y1="60" x2="164" y2="70" class="grip-line" stroke-width="3"/>
+      <circle cx="167" cy="49" r="4" class="grip"/>
+      <circle cx="167" cy="71" r="4" class="grip"/>
+      <line x1="10" y1="130" x2="210" y2="130" class="m-outline-thin"/>`,
+
+    splitSquat: `
+      <rect x="120" y="86" width="70" height="12" rx="3" class="m-outline"/>
+      <line x1="130" y1="98" x2="130" y2="116" class="m-outline-thin"/>
+      <line x1="178" y1="98" x2="178" y2="116" class="m-outline-thin"/>
+      <line x1="20" y1="70" x2="44" y2="70" class="grip-line" stroke-width="5"/>
+      <circle cx="16" cy="70" r="11" class="plate"/>
+      <circle cx="48" cy="70" r="11" class="plate"/>
+      <line x1="60" y1="70" x2="84" y2="70" class="grip-line" stroke-width="5"/>
+      <circle cx="56" cy="70" r="11" class="plate"/>
+      <circle cx="88" cy="70" r="11" class="plate"/>
+      <line x1="10" y1="130" x2="210" y2="130" class="m-outline-thin"/>`,
+
+    pallof: `
+      <line x1="20" y1="10" x2="20" y2="130" class="m-outline"/>
+      <line x1="34" y1="10" x2="34" y2="130" class="m-outline-thin"/>
+      <rect x="20" y="60" width="14" height="8" rx="1" class="plate"/>
+      <rect x="20" y="70" width="14" height="8" rx="1" class="plate"/>
+      <rect x="20" y="80" width="14" height="8" rx="1" class="plate"/>
+      <circle cx="27" cy="90" r="7" class="m-outline"/>
+      <line x1="34" y1="90" x2="150" y2="86" class="m-outline-thin"/>
+      <path d="M150 78 Q168 86 150 94" fill="none" class="grip-line" stroke-width="4"/>
+      <line x1="10" y1="130" x2="210" y2="130" class="m-outline-thin"/>`,
+
+    plank: `
+      <rect x="30" y="100" width="160" height="16" rx="7" class="m-outline"/>
+      <line x1="40" y1="100" x2="40" y2="116" class="m-outline-thin"/>
+      <line x1="55" y1="100" x2="55" y2="116" class="m-outline-thin"/>
+      <line x1="70" y1="100" x2="70" y2="116" class="m-outline-thin"/>
+      <line x1="85" y1="100" x2="85" y2="116" class="m-outline-thin"/>
+      <line x1="100" y1="100" x2="100" y2="116" class="m-outline-thin"/>
+      <line x1="10" y1="130" x2="210" y2="130" class="m-outline-thin"/>`,
+
+    latPulldown: `
+      <line x1="100" y1="8" x2="100" y2="60" class="m-outline"/>
+      <circle cx="100" cy="14" r="6" class="m-outline"/>
+      <line x1="60" y1="30" x2="140" y2="30" class="grip-line" stroke-width="5"/>
+      <circle cx="56" cy="30" r="4" class="grip"/>
+      <circle cx="144" cy="30" r="4" class="grip"/>
+      <rect x="70" y="100" width="60" height="12" rx="3" class="m-outline"/>
+      <rect x="85" y="90" width="30" height="10" rx="3" class="m-outline-thin"/>
+      <line x1="78" y1="112" x2="78" y2="132" class="m-outline-thin"/>
+      <line x1="122" y1="112" x2="122" y2="132" class="m-outline-thin"/>
+      <rect x="14" y="20" width="14" height="8" rx="1" class="plate"/>
+      <rect x="14" y="30" width="14" height="8" rx="1" class="plate"/>
+      <rect x="14" y="40" width="14" height="8" rx="1" class="plate"/>
+      <line x1="10" y1="132" x2="210" y2="132" class="m-outline-thin"/>`,
+
+    calfRaise: `
+      <rect x="70" y="110" width="60" height="10" rx="2" class="m-outline"/>
+      <line x1="80" y1="20" x2="80" y2="70" class="m-outline"/>
+      <line x1="120" y1="20" x2="120" y2="70" class="m-outline"/>
+      <rect x="72" y="14" width="56" height="12" rx="4" class="grip"/>
+      <rect x="72" y="60" width="56" height="10" rx="3" class="m-outline-thin"/>
+      <line x1="10" y1="130" x2="210" y2="130" class="m-outline-thin"/>`
+  };
+
+  const m = machines[kind];
+  if(!m){ document.getElementById('movementSvg').innerHTML = ''; return; }
+  document.getElementById('movementSvg').innerHTML = `
+    <div class="exec-panel">
+      <svg viewBox="0 0 220 150">${m}</svg>
+      <div class="exec-cap">Machine</div>
+    </div>
+  `;
+}
+
+/* ---------- INIT ---------- */
+
+(async function init(){
+  await loadHistory();
+  renderHub();
+})();
+</script>
+
+</body>
+</html>
