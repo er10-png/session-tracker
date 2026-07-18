@@ -219,6 +219,11 @@
     width:100%; padding:11px; background:none; border:1px solid var(--card-line);
     border-radius:8px; color:var(--dim); font-size:13px; font-weight:700;
   }
+  .rest-options{ display:flex; gap:8px; }
+  .rest-opt-btn{
+    flex:1; padding:11px 0; background:none; border:1px solid var(--card-line);
+    border-radius:8px; color:var(--dim); font-size:13px; font-weight:700;
+  }
   .rest-active{
     display:flex; align-items:center; gap:10px;
     padding:10px 14px; background:var(--card); border:1px solid var(--card-line); border-radius:8px;
@@ -311,7 +316,12 @@
   </div>
 
   <div class="rest-row">
-    <button class="rest-start-btn" id="restStartBtn" onclick="startRest()">Start rest</button>
+    <button class="rest-start-btn" id="restStartBtn" onclick="showRestOptions()">Start rest</button>
+    <div class="rest-options" id="restOptions" style="display:none;">
+      <button class="rest-opt-btn" onclick="startRest(15)">15s</button>
+      <button class="rest-opt-btn" onclick="startRest(30)">30s</button>
+      <button class="rest-opt-btn" onclick="startRest(60)">60s</button>
+    </div>
     <div class="rest-active" id="restActive" style="display:none;">
       <span class="rest-time" id="restTime">60</span>
       <div class="rest-bar"><div class="rest-bar-fill" id="restBarFill"></div></div>
@@ -757,11 +767,17 @@ function closeSessionLog(){
 
 let restInterval = null;
 let restRemaining = 0;
-const REST_DURATION = 60;
+let restTotal = 60;
 
-function startRest(){
-  restRemaining = REST_DURATION;
+function showRestOptions(){
   document.getElementById('restStartBtn').style.display = 'none';
+  document.getElementById('restOptions').style.display = 'flex';
+}
+
+function startRest(duration){
+  restTotal = duration;
+  restRemaining = duration;
+  document.getElementById('restOptions').style.display = 'none';
   document.getElementById('restActive').style.display = 'flex';
   document.getElementById('restBarFill').style.transition = 'none';
   updateRestDisplay();
@@ -780,7 +796,7 @@ function startRest(){
 
 function updateRestDisplay(){
   document.getElementById('restTime').textContent = restRemaining;
-  document.getElementById('restBarFill').style.width = (restRemaining / REST_DURATION * 100) + '%';
+  document.getElementById('restBarFill').style.width = (restRemaining / restTotal * 100) + '%';
 }
 
 function cancelRest(){ stopRestTimer(); }
@@ -789,8 +805,10 @@ function stopRestTimer(){
   clearInterval(restInterval);
   restInterval = null;
   const active = document.getElementById('restActive');
+  const options = document.getElementById('restOptions');
   const startBtn = document.getElementById('restStartBtn');
   if(active) active.style.display = 'none';
+  if(options) options.style.display = 'none';
   if(startBtn) startBtn.style.display = 'block';
 }
 
