@@ -158,9 +158,9 @@
     background:var(--card); width:100%; border-radius:16px 16px 0 0;
     max-height:82vh; overflow-y:auto; padding-bottom:24px;
   }
+  .modal-handle-zone{ padding:14px 0 10px; display:flex; justify-content:center; }
   .modal-handle{
     width:36px; height:4px; border-radius:2px; background:#3a3a40;
-    margin:10px auto 0;
   }
   .modal-head{ display:flex; justify-content:space-between; align-items:center; padding:18px 16px 8px; }
   .modal-head h2{ font-size:17px; font-weight:800; }
@@ -279,9 +279,11 @@
 </div>
 
 <!-- MODAL -->
-<div class="overlay" id="overlay">
-  <div class="modal">
-    <div class="modal-handle"></div>
+<div class="overlay" id="overlay" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle-zone">
+      <div class="modal-handle"></div>
+    </div>
     <div class="modal-head">
       <h2 id="modalName"></h2>
       <button class="close-btn" onclick="closeModal()">&times;</button>
@@ -611,7 +613,7 @@ function switchTab(name){
 
 (function setupSwipeToClose(){
   const modal = document.querySelector('.modal');
-  const handle = document.querySelector('.modal-handle');
+  const handle = document.querySelector('.modal-handle-zone');
   let startY = 0, dy = 0, dragging = false;
 
   function onStart(e){
