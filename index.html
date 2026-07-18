@@ -16,6 +16,7 @@
     --accent-dim: #3a2320;
     --accent-secondary: #8a3a30;
     --idle: #35353b;
+    --good: #5fae7c;
   }
   *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
   body{
@@ -159,14 +160,19 @@
   .save-confirm{
     text-align:center; font-size:12px; color:var(--dim); padding:6px 16px 4px; min-height:18px;
   }
-  .feeling-row{ margin:0 16px 12px; padding:14px; background:var(--card); border:1px solid var(--card-line); border-radius:10px; text-align:center; }
-  .feeling-label{ font-size:12.5px; color:var(--dim); margin-bottom:10px; }
-  .feeling-btns{ display:flex; gap:8px; }
-  .feeling-btn{ flex:1; padding:10px 0; border:1px solid var(--card-line); border-radius:8px; background:none; color:var(--ink); font-size:13px; font-weight:700; }
-  .feeling-badge{ font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; padding:2px 6px; border-radius:20px; margin-left:6px; }
-  .feeling-easy{ background:var(--idle); color:var(--dim); }
-  .feeling-medium{ background:var(--accent-dim); color:var(--accent); }
-  .feeling-hard{ background:var(--accent-secondary); color:#fff; }
+  .feeling-body{ padding:6px 20px 28px; }
+  .feeling-label{ text-align:center; font-size:13.5px; color:var(--dim); margin-bottom:18px; }
+  .feeling-btns{ display:flex; gap:10px; }
+  .feeling-opt{ flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; background:none; border:none; padding:6px 0; }
+  .feeling-face{ width:44px; height:44px; }
+  .feeling-face.easy{ color:var(--good); }
+  .feeling-face.solid{ color:var(--dim); }
+  .feeling-face.rough{ color:var(--accent); }
+  .feeling-opt span{ font-size:12px; font-weight:700; color:var(--dim); }
+  .feeling-dot{ display:inline-block; width:7px; height:7px; border-radius:50%; margin-left:6px; flex-shrink:0; }
+  .feeling-dot.easy{ background:var(--good); }
+  .feeling-dot.solid{ background:var(--dim); }
+  .feeling-dot.rough{ background:var(--accent); }
 
   /* modal */
   .overlay{
@@ -315,14 +321,6 @@
 
   <button class="save-btn" onclick="saveWorkout()">Save this session</button>
   <div class="save-confirm" id="saveConfirm"></div>
-  <div class="feeling-row" id="feelingRow" style="display:none;">
-    <div class="feeling-label">How did that feel?</div>
-    <div class="feeling-btns">
-      <button class="feeling-btn" onclick="setFeeling('easy')">Easy</button>
-      <button class="feeling-btn" onclick="setFeeling('medium')">Medium</button>
-      <button class="feeling-btn" onclick="setFeeling('hard')">Hard</button>
-    </div>
-  </div>
 </div>
 
 <!-- SESSION LOG VIEW -->
@@ -387,6 +385,45 @@
       <button class="backup-btn secondary" onclick="triggerImport()">Import backup</button>
       <input type="file" id="importFileInput" class="hidden-file-input" accept="application/json" onchange="importBackup(event)">
       <div class="backup-status" id="backupStatus"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FEELING OVERLAY -->
+<div class="overlay" id="feelingOverlay" onclick="closeFeelingPrompt()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle-zone"><div class="modal-handle"></div></div>
+    <div class="feeling-body">
+      <div class="feeling-label">How did that session feel?</div>
+      <div class="feeling-btns">
+        <button class="feeling-opt" onclick="setFeeling('easy')">
+          <svg class="feeling-face easy" viewBox="0 0 40 40">
+            <circle cx="20" cy="20" r="17" fill="none" stroke="currentColor" stroke-width="2"/>
+            <circle cx="14" cy="17" r="1.8" fill="currentColor"/>
+            <circle cx="26" cy="17" r="1.8" fill="currentColor"/>
+            <path d="M13 25 Q20 32 27 25" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span>Easy</span>
+        </button>
+        <button class="feeling-opt" onclick="setFeeling('solid')">
+          <svg class="feeling-face solid" viewBox="0 0 40 40">
+            <circle cx="20" cy="20" r="17" fill="none" stroke="currentColor" stroke-width="2"/>
+            <circle cx="14" cy="17" r="1.8" fill="currentColor"/>
+            <circle cx="26" cy="17" r="1.8" fill="currentColor"/>
+            <line x1="13" y1="27" x2="27" y2="27" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span>Solid</span>
+        </button>
+        <button class="feeling-opt" onclick="setFeeling('rough')">
+          <svg class="feeling-face rough" viewBox="0 0 40 40">
+            <circle cx="20" cy="20" r="17" fill="none" stroke="currentColor" stroke-width="2"/>
+            <circle cx="14" cy="17" r="1.8" fill="currentColor"/>
+            <circle cx="26" cy="17" r="1.8" fill="currentColor"/>
+            <path d="M13 29 Q20 23 27 29" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span>Rough</span>
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -607,7 +644,7 @@ function openDetail(id){
   document.getElementById('modalName').textContent = e.name;
   document.getElementById('cueText').textContent = e.cue;
   document.getElementById('saveConfirm').textContent = '';
-  document.getElementById('feelingRow').style.display = 'none';
+  closeFeelingPrompt();
   stopRestTimer();
 
   renderSets();
@@ -692,8 +729,8 @@ function renderSessionLog(){
     const dateStr = s.dateObj.toLocaleDateString(undefined, {weekday:'long', month:'short', day:'numeric'});
     const durationStr = s.durationMin > 0 ? `${s.durationMin} min` : 'single exercise';
     const exList = s.exercises.map(e => {
-      const feelingBadge = e.feeling ? `<span class="feeling-badge feeling-${e.feeling}">${e.feeling}</span>` : '';
-      return `<div class="session-ex-row"><span>${e.exerciseName}${feelingBadge}</span><span>${e.sets.length} set${e.sets.length===1?'':'s'}</span></div>`;
+      const feelingDot = ['easy','solid','rough'].includes(e.feeling) ? `<span class="feeling-dot ${e.feeling}"></span>` : '';
+      return `<div class="session-ex-row"><span>${e.exerciseName}${feelingDot}</span><span>${e.sets.length} set${e.sets.length===1?'':'s'}</span></div>`;
     }).join('');
     return `
       <div class="session-card">
@@ -811,19 +848,19 @@ async function saveWorkout(){
   await persistHistory();
   renderModalHistory(currentExerciseId);
   document.getElementById('saveConfirm').textContent = 'Saved, this stays in your history from now on.';
-  document.getElementById('feelingRow').style.display = 'block';
+  openFeelingPrompt();
 }
+
+function openFeelingPrompt(){ document.getElementById('feelingOverlay').classList.add('open'); }
+function closeFeelingPrompt(){ document.getElementById('feelingOverlay').classList.remove('open'); }
 
 async function setFeeling(value){
   const entry = history[currentExerciseId] && history[currentExerciseId][0];
+  closeFeelingPrompt();
   if(!entry) return;
   entry.feeling = value;
   await persistHistory();
-  document.getElementById('feelingRow').style.display = 'none';
-  const conf = document.getElementById('saveConfirm');
-  conf.textContent = `Saved, felt ${value}.`;
   renderModalHistory(currentExerciseId);
-  setTimeout(()=>{ conf.textContent=''; }, 2500);
 }
 
 /* ---------- MODAL ---------- */
@@ -977,11 +1014,11 @@ function renderModalHistory(id){
     const d = new Date(entry.date);
     const dateStr = d.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'});
     const summary = entry.sets.map(s => s.weight > 0 ? `${s.weight}kg x ${s.reps}` : `${s.reps}s`).join(', ');
-    const feelingBadge = entry.feeling ? `<span class="feeling-badge feeling-${entry.feeling}">${entry.feeling}</span>` : '';
+    const feelingDot = ['easy','solid','rough'].includes(entry.feeling) ? `<span class="feeling-dot ${entry.feeling}"></span>` : '';
     return `<div class="history-row">
       <div class="history-delete-bg" onclick="deleteHistoryEntry('${id}', ${i}, true)">Delete</div>
       <div class="history-item">
-        <div class="history-text"><span>${dateStr}${feelingBadge}</span><b style="text-align:right; max-width:60%;">${summary}</b></div>
+        <div class="history-text"><span>${dateStr}${feelingDot}</span><b style="text-align:right; max-width:60%;">${summary}</b></div>
         <button class="del-history" onclick="deleteHistoryEntry('${id}', ${i})">&times;</button>
       </div>
     </div>`;
