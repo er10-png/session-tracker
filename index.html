@@ -233,6 +233,8 @@
   .rest-bar-fill{ height:100%; width:100%; background:var(--dim); border-radius:2px; transition:width 1s linear; }
   .rest-cancel-btn{ background:none; border:none; color:var(--dim); font-size:12px; font-weight:700; padding:4px 6px; flex-shrink:0; }
   .session-card{ background:var(--card); border:1px solid var(--card-line); border-radius:10px; padding:14px; }
+  .session-card-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  .del-session{ background:none; border:none; color:var(--dim); font-size:18px; line-height:1; padding:0 2px; flex-shrink:0; }
   .session-date{ font-size:14px; font-weight:700; }
   .session-meta{ font-size:11.5px; color:var(--dim); margin-top:2px; }
   .session-ex-list{ display:flex; flex-direction:column; margin-top:10px; }
@@ -696,6 +698,7 @@ function buildSessions(){
     const timestamps = items.map(i => new Date(i.date).getTime());
     const durationMin = Math.max(0, Math.round((Math.max(...timestamps) - Math.min(...timestamps)) / 60000));
     return {
+      dateKey: key,
       dateObj: new Date(items[0].date),
       exercises: items,
       exerciseCount: items.length,
@@ -744,11 +747,23 @@ function renderSessionLog(){
     }).join('');
     return `
       <div class="session-card">
-        <div class="session-date">${dateStr}</div>
+        <div class="session-card-head">
+          <div class="session-date">${dateStr}</div>
+          <button class="del-session" onclick="deleteSession('${s.dateKey}')">&times;</button>
+        </div>
         <div class="session-meta">${s.exerciseCount} exercise${s.exerciseCount===1?'':'s'} &middot; ${s.totalSets} sets &middot; ${durationStr}</div>
         <div class="session-ex-list">${exList}</div>
       </div>`;
   }).join('');
+}
+
+async function deleteSession(dateKey){
+  if(!confirm('Delete this entire session? Every exercise logged that day will be removed. This can\'t be undone.')) return;
+  for(const exerciseId in history){
+    history[exerciseId] = history[exerciseId].filter(entry => new Date(entry.date).toDateString() !== dateKey);
+  }
+  await persistHistory();
+  renderSessionLog();
 }
 
 function openSessionLog(){
