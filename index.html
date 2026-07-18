@@ -177,20 +177,6 @@
   .tab-panel.active{ display:block; }
   .tab-panel p{ font-size:13px; color:var(--dim); line-height:1.5; margin-bottom:10px; }
 
-  .figures{ display:flex; justify-content:center; gap:14px; margin-bottom:14px; background:#0c0c0e; border:1px solid var(--card-line); border-radius:10px; padding:14px 8px; }
-  .figures svg{ width:42%; max-width:145px; height:auto; }
-  .fig-cap{ text-align:center; font-size:9px; letter-spacing:0.06em; text-transform:uppercase; color:var(--dim); margin-top:4px; }
-  .fig-col{ display:flex; flex-direction:column; align-items:center; flex:1; }
-  .body-base{ fill:#232327; stroke:#38383e; stroke-width:1.4; }
-  .m-detail{ fill:none; stroke:#38383e; stroke-width:1.2; }
-  .region-primary{ fill:var(--accent) !important; }
-  .region-secondary{ fill:var(--accent-secondary) !important; }
-  .region-idle{ fill:#2d2d32 !important; }
-  .muscle-key{ font-size:12px; margin-bottom:4px; }
-  .muscle-key b{ color:var(--ink); }
-  .key-row{ display:flex; align-items:center; gap:6px; margin-bottom:6px; }
-  .dot{ width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-
   .exec-seq{ display:flex; gap:10px; margin-bottom:14px; }
   .exec-panel{
     flex:1; background:#0c0c0e; border:1px solid var(--card-line);
@@ -275,20 +261,15 @@
     </div>
     <div class="tabs">
       <div class="tab active" data-tab="execution" onclick="switchTab('execution')">Execution</div>
-      <div class="tab" data-tab="muscles" onclick="switchTab('muscles')">Muscle groups</div>
-      <div class="tab" data-tab="notes" onclick="switchTab('notes')">Notes</div>
+      <div class="tab" data-tab="guide" onclick="switchTab('guide')">Guide</div>
       <div class="tab" data-tab="history" onclick="switchTab('history')">History</div>
     </div>
     <div class="tab-body" id="tabBody">
       <div class="tab-panel active" data-panel="execution">
         <div class="exec-seq" id="movementSvg"></div>
+      </div>
+      <div class="tab-panel" data-panel="guide">
         <p id="cueText"></p>
-      </div>
-      <div class="tab-panel" data-panel="muscles">
-        <div class="figures" id="figuresWrap"></div>
-        <div class="muscle-key" id="muscleKey"></div>
-      </div>
-      <div class="tab-panel" data-panel="notes">
         <div class="notes-list" id="notesList"></div>
       </div>
       <div class="tab-panel" data-panel="history">
@@ -300,12 +281,6 @@
 
 <script>
 /* ---------- DATA ---------- */
-
-const REGION_LABELS = {
-  chest:'Chest', frontDelt:'Front delts', biceps:'Biceps', abs:'Core',
-  quads:'Quads', lats:'Lats', upperBack:'Upper back', rearDelt:'Rear delts',
-  triceps:'Triceps', glutes:'Glutes', hamstrings:'Hamstrings', calves:'Calves'
-};
 
 const EXERCISES = [
   { id:'chestPress', day:'A', name:'Chest Press', equip:'Smith machine or flat bench and barbell',
@@ -524,7 +499,6 @@ function openDetail(id){
 
   renderSets();
   renderMovement(e.movement);
-  renderMuscles(e.muscles);
   renderModalHistory(id);
   renderNotes(e.notes);
 
@@ -733,67 +707,6 @@ function renderNotes(notes){
   const anglesHtml = notes.angles && notes.angles.length
     ? `<div class="note-block"><b>Seat and angle effects</b><ul>${notes.angles.map(a=>`<li>${a}</li>`).join('')}</ul></div>` : '';
   wrap.innerHTML = mistakesHtml + anglesHtml || '<div class="empty">No notes for this one yet.</div>';
-}
-
-/* ---------- MUSCLE FIGURES ---------- */
-
-function renderMuscles(muscles){
-  const cls = region => muscles.primary.includes(region) ? 'region-primary'
-    : muscles.secondary.includes(region) ? 'region-secondary' : 'region-idle';
-
-  const front = `
-  <svg viewBox="0 0 140 280">
-    <path class="body-base" d="M70 14 a17 17 0 1 0 0.1 0 Z M50 48 Q70 40 90 48 L98 70 L104 96 L100 100 L92 78 L90 100 L92 150 L88 210 L94 268 L82 268 L78 200 L70 160 L62 200 L58 268 L46 268 L52 210 L48 150 L50 100 L48 78 L40 100 L36 96 L42 70 Z"/>
-    <path d="M52 54 Q70 64 70 82 L70 96 L54 96 Z" class="${cls('chest')}"/>
-    <path d="M88 54 Q70 64 70 82 L70 96 L86 96 Z" class="${cls('chest')}"/>
-    <line x1="70" y1="60" x2="70" y2="96" class="m-detail"/>
-    <path d="M42 52 Q34 58 34 70 Q42 74 50 68 Q48 58 42 52 Z" class="${cls('frontDelt')}"/>
-    <path d="M98 52 Q106 58 106 70 Q98 74 90 68 Q92 58 98 52 Z" class="${cls('frontDelt')}"/>
-    <path d="M32 72 Q26 90 30 110 Q38 112 42 108 Q40 88 40 74 Z" class="${cls('biceps')}"/>
-    <path d="M108 72 Q114 90 110 110 Q102 112 98 108 Q100 88 100 74 Z" class="${cls('biceps')}"/>
-    <rect x="58" y="100" width="10" height="10" rx="2" class="${cls('abs')}"/>
-    <rect x="72" y="100" width="10" height="10" rx="2" class="${cls('abs')}"/>
-    <rect x="58" y="113" width="10" height="10" rx="2" class="${cls('abs')}"/>
-    <rect x="72" y="113" width="10" height="10" rx="2" class="${cls('abs')}"/>
-    <rect x="58" y="126" width="10" height="10" rx="2" class="${cls('abs')}"/>
-    <rect x="72" y="126" width="10" height="10" rx="2" class="${cls('abs')}"/>
-    <path d="M50 100 L56 100 L54 138 L48 136 Z" class="${cls('abs')}"/>
-    <path d="M90 100 L84 100 L86 138 L92 136 Z" class="${cls('abs')}"/>
-    <path d="M55 150 Q58 190 54 230 L68 230 L67 150 Z" class="${cls('quads')}"/>
-    <path d="M85 150 Q82 190 86 230 L72 230 L73 150 Z" class="${cls('quads')}"/>
-    <line x1="61" y1="155" x2="59" y2="228" class="m-detail"/>
-    <line x1="79" y1="155" x2="81" y2="228" class="m-detail"/>
-  </svg>`;
-
-  const back = `
-  <svg viewBox="0 0 140 280">
-    <path class="body-base" d="M70 14 a17 17 0 1 0 0.1 0 Z M50 48 Q70 40 90 48 L98 70 L104 96 L100 100 L92 78 L90 100 L92 150 L88 210 L94 268 L82 268 L78 200 L70 160 L62 200 L58 268 L46 268 L52 210 L48 150 L50 100 L48 78 L40 100 L36 96 L42 70 Z"/>
-    <path d="M62 46 L78 46 L88 78 L70 96 L52 78 Z" class="${cls('upperBack')}"/>
-    <path d="M40 74 Q30 100 34 130 Q46 138 58 128 Q54 100 52 80 Z" class="${cls('lats')}"/>
-    <path d="M100 74 Q110 100 106 130 Q94 138 82 128 Q86 100 88 80 Z" class="${cls('lats')}"/>
-    <path d="M42 52 Q34 58 34 70 Q42 74 50 68 Q48 58 42 52 Z" class="${cls('rearDelt')}"/>
-    <path d="M98 52 Q106 58 106 70 Q98 74 90 68 Q92 58 98 52 Z" class="${cls('rearDelt')}"/>
-    <path d="M32 72 Q26 90 30 110 Q38 112 42 108 Q40 88 40 74 Z" class="${cls('triceps')}"/>
-    <path d="M108 72 Q114 90 110 110 Q102 112 98 108 Q100 88 100 74 Z" class="${cls('triceps')}"/>
-    <rect x="56" y="100" width="28" height="38" rx="6" class="region-idle"/>
-    <line x1="70" y1="104" x2="70" y2="134" class="m-detail"/>
-    <path d="M54 140 Q70 132 86 140 Q88 158 82 172 Q70 178 58 172 Q52 158 54 140 Z" class="${cls('glutes')}"/>
-    <line x1="70" y1="142" x2="70" y2="172" class="m-detail"/>
-    <path d="M56 178 Q58 200 55 224 L68 224 L67 178 Z" class="${cls('hamstrings')}"/>
-    <path d="M84 178 Q82 200 85 224 L72 224 L73 178 Z" class="${cls('hamstrings')}"/>
-    <path d="M55 232 Q58 250 56 266 L66 266 L65 232 Z" class="${cls('calves')}"/>
-    <path d="M85 232 Q82 250 84 266 L74 266 L75 232 Z" class="${cls('calves')}"/>
-  </svg>`;
-
-  document.getElementById('figuresWrap').innerHTML =
-    `<div class="fig-col">${front}<div class="fig-cap">Front</div></div>
-     <div class="fig-col">${back}<div class="fig-cap">Back</div></div>`;
-
-  const key = document.getElementById('muscleKey');
-  key.innerHTML = `
-    <div class="key-row"><div class="dot" style="background:var(--accent);"></div><b>Main:</b>&nbsp;${muscles.primary.map(r=>REGION_LABELS[r]).join(', ') || 'none'}</div>
-    <div class="key-row"><div class="dot" style="background:var(--accent-secondary);"></div><b>Secondary:</b>&nbsp;${muscles.secondary.map(r=>REGION_LABELS[r]).join(', ') || 'none'}</div>
-  `;
 }
 
 /* ---------- MOVEMENT DIAGRAMS ---------- */
