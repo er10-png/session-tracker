@@ -233,15 +233,15 @@
     <h1>Session Map</h1>
   </header>
   <div class="day-toggle">
-    <button class="day-btn active" id="dayBtnA" onclick="setDay('A')">Full Body A</button>
-    <button class="day-btn" id="dayBtnB" onclick="setDay('B')">Full Body B</button>
+    <button class="day-btn active" data-day="A" onclick="setDay('A')">Full Body A</button>
+    <button class="day-btn" data-day="B" onclick="setDay('B')">Full Body B</button>
+    <button class="day-btn" data-day="optional" onclick="setDay('optional')">Optional</button>
   </div>
-  <div class="list" id="exerciseList"></div>
-  <div class="section-head">
+  <div class="section-head" id="hubSectionHead" style="display:none;">
     <h2>Optional add-ins</h2>
     <p>Not tied to a day, drop these into either session when you have the time.</p>
   </div>
-  <div class="list" id="optionalList"></div>
+  <div class="list" id="exerciseList"></div>
 </div>
 
 <!-- DETAIL VIEW -->
@@ -338,11 +338,11 @@ const EXERCISES = [
     notes:{mistakes:["Lower back rounding off the pad at the bottom, a sign you've gone deeper than your hips can control safely","Locking your knees out fully at the top puts the stress on the joint instead of the muscle","Feet too low on the platform overloads the knees, too high overloads the lower back"], angles:["Feet placed higher and wider on the platform shifts more work to glutes and hamstrings","Feet placed lower and closer together shifts more work to the quads, which is the setup you want given your goal here"]},
     movement:'legPress', defaultSets:[{reps:13,weight:60},{reps:13,weight:60}] },
 
-  { id:'rotatorCuff', day:'A', name:'Band Rotator Cuff and Core Finisher', equip:'Light resistance band, floor mat',
-    cue:"External rotation with elbow pinned to your side, then a plank or dead bug set. Left arm's band work first.",
-    muscles:{primary:['rearDelt'], secondary:['abs']},
-    notes:{mistakes:["Using a band heavy enough that your shoulder shrugs or your elbow drifts away from your ribs, this should feel light","Rotating from the shoulder joint too far, the elbow stays pinned, only the forearm rotates","Rushing through it, this is a small stabilizing muscle group, slow and controlled is the whole point"], angles:["Anchor point at roughly elbow height keeps the resistance in the right plane for this movement"]},
-    movement:'rotatorCuff', defaultSets:[{reps:15,weight:0},{reps:15,weight:0}] },
+  { id:'standingCablePress', day:'A', name:'Standing Single-Arm Cable Press', equip:'Cable tower, chest-height pulley, single handle, standing',
+    cue:"Stand side-on to the tower, press the handle straight out from your chest without letting your torso rotate. Left arm first.",
+    muscles:{primary:['chest'], secondary:['frontDelt','triceps','abs']},
+    notes:{mistakes:["Rotating your torso to help finish the press, the resistance should be fought with your core staying square, not a twist","Letting the shoulder round forward at the start instead of keeping it set back and down","Standing too close to the tower means not enough tension at the start of the press"], angles:["Pulley at chest height keeps the pressing line matching a standard chest press","Standing further from the tower increases the anti-rotation demand on your core, useful once the base movement feels easy"]},
+    movement:'standingCablePress', defaultSets:[{reps:12,weight:7.5},{reps:12,weight:7.5},{reps:12,weight:7.5}] },
 
   { id:'assistedDip', day:'B', name:'Assisted Dip', equip:'Assisted pull-up and dip machine',
     cue:"Lean forward slightly to bias chest over triceps. Lower until your shoulders dip below your elbows, press back up.",
@@ -397,6 +397,30 @@ const EXERCISES = [
     muscles:{primary:['calves'], secondary:[]},
     notes:{mistakes:["Bouncing at the bottom instead of a controlled stretch, this is a small muscle group that responds better to control than speed","Cutting the range short, both the stretch at the bottom and the pause at the top matter here","Letting your knees bend to help push, keep them soft but essentially straight throughout"], angles:["Toes pointed straight ahead is the standard setup and works the calf as a whole","Toes turned slightly inward or outward shifts emphasis between the inner and outer calf muscle, not necessary right now but useful variety later"]},
     movement:'calfRaise', defaultSets:[{reps:15,weight:10},{reps:15,weight:10}] },
+
+  { id:'inclinePress', day:'both', optional:true, name:'Incline Press', equip:'Incline bench and barbell, or Smith machine',
+    cue:"Press up and slightly back along the line of the bench, elbows tucked closer than a flat press. Full stretch at the bottom.",
+    muscles:{primary:['chest'], secondary:['frontDelt','triceps']},
+    notes:{mistakes:["Elbows flaring straight out to the sides shifts the work onto the front of the shoulder instead of the upper chest","Bench angle too steep turns this into a shoulder press, 30 to 45 degrees is the useful range for upper chest","Bouncing the bar off your chest at the bottom instead of a controlled stretch"], angles:["Around 30 degrees keeps the emphasis on the upper chest without over-recruiting the front delt","Past about 45 degrees the front delt starts taking over from the chest"]},
+    movement:'inclinePress', defaultSets:[{reps:10,weight:20},{reps:10,weight:20},{reps:10,weight:20}] },
+
+  { id:'suitcaseCarry', day:'both', optional:true, name:'Suitcase Carry', equip:'Single dumbbell, walking space',
+    cue:"Carry the weight in one hand like a suitcase, walk tall and resist leaning toward the loaded side. Switch hands halfway.",
+    muscles:{primary:['abs'], secondary:['upperBack']},
+    notes:{mistakes:["Leaning your torso away from the weight to compensate, the whole point is resisting that pull, not giving in to it","Letting the shoulder on the loaded side hike up toward your ear instead of staying packed down","Rushing the steps, this works best slow and controlled with a tall, braced posture"], angles:["Nothing to adjust here, the challenge comes from the load and the distance walked, not a setup angle"]},
+    movement:'suitcaseCarry', defaultSets:[{reps:20,weight:12},{reps:20,weight:12}] },
+
+  { id:'dumbbellCurl', day:'both', optional:true, name:'Dumbbell Bicep Curl', equip:'Pair of dumbbells, seated or standing',
+    cue:"Curl without swinging your torso, elbows stay pinned at your sides through the whole rep.",
+    muscles:{primary:['biceps'], secondary:[]},
+    notes:{mistakes:["Swinging your torso or using momentum to heave the weight up instead of a controlled curl","Elbows drifting forward as the weight gets heavier, keep them tucked at your sides","Not fully extending at the bottom, the stretch at the bottom is part of the rep"], angles:["Palms facing forward throughout is the standard version and hits the biceps most directly","Rotating the wrist slightly at the top adds a small peak squeeze, optional once the base movement feels easy"]},
+    movement:'dumbbellCurl', defaultSets:[{reps:11,weight:10},{reps:11,weight:10},{reps:11,weight:10}] },
+
+  { id:'lateralRaise', day:'both', optional:true, name:'Lateral Raise', equip:'Pair of dumbbells, standing',
+    cue:"Raise both arms out to the sides to shoulder height, leading with your elbows rather than your hands. Slight bend in the elbow throughout.",
+    muscles:{primary:['frontDelt'], secondary:[]},
+    notes:{mistakes:["Using momentum to swing the weights up instead of a controlled raise, this is a small muscle group, light weight is correct here","Raising past shoulder height turns it into a shrug and shifts the work onto your traps","Leading with the hands instead of the elbows changes the angle of pull on the shoulder"], angles:["Arms raised straight out to the sides is the standard version","Raising slightly in front of your body shifts a bit more emphasis onto the front delt, useful variety later"]},
+    movement:'lateralRaise', defaultSets:[{reps:12,weight:6},{reps:12,weight:6},{reps:12,weight:6}] },
 ];
 
 let currentDay = 'A';
@@ -443,8 +467,7 @@ function miniIcon(exercise){
 
 function setDay(day){
   currentDay = day;
-  document.getElementById('dayBtnA').classList.toggle('active', day==='A');
-  document.getElementById('dayBtnB').classList.toggle('active', day==='B');
+  document.querySelectorAll('.day-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.day === day));
   renderHub();
 }
 
@@ -473,12 +496,16 @@ function cardHtml(e){
 
 function renderHub(){
   const list = document.getElementById('exerciseList');
-  const items = EXERCISES.filter(e => (e.day === currentDay || e.day === 'both') && !e.optional);
-  list.innerHTML = items.map(cardHtml).join('');
-
-  const optList = document.getElementById('optionalList');
-  const optItems = EXERCISES.filter(e => e.optional);
-  optList.innerHTML = optItems.map(cardHtml).join('');
+  const head = document.getElementById('hubSectionHead');
+  if(currentDay === 'optional'){
+    head.style.display = 'block';
+    const items = EXERCISES.filter(e => e.optional);
+    list.innerHTML = items.map(cardHtml).join('');
+  } else {
+    head.style.display = 'none';
+    const items = EXERCISES.filter(e => (e.day === currentDay || e.day === 'both') && !e.optional);
+    list.innerHTML = items.map(cardHtml).join('');
+  }
 }
 
 /* ---------- DETAIL VIEW ---------- */
