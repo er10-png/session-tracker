@@ -159,6 +159,14 @@
   .save-confirm{
     text-align:center; font-size:12px; color:var(--dim); padding:6px 16px 4px; min-height:18px;
   }
+  .feeling-row{ margin:0 16px 12px; padding:14px; background:var(--card); border:1px solid var(--card-line); border-radius:10px; text-align:center; }
+  .feeling-label{ font-size:12.5px; color:var(--dim); margin-bottom:10px; }
+  .feeling-btns{ display:flex; gap:8px; }
+  .feeling-btn{ flex:1; padding:10px 0; border:1px solid var(--card-line); border-radius:8px; background:none; color:var(--ink); font-size:13px; font-weight:700; }
+  .feeling-badge{ font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; padding:2px 6px; border-radius:20px; margin-left:6px; }
+  .feeling-easy{ background:var(--idle); color:var(--dim); }
+  .feeling-medium{ background:var(--accent-dim); color:var(--accent); }
+  .feeling-hard{ background:var(--accent-secondary); color:#fff; }
 
   /* modal */
   .overlay{
@@ -307,6 +315,14 @@
 
   <button class="save-btn" onclick="saveWorkout()">Save this session</button>
   <div class="save-confirm" id="saveConfirm"></div>
+  <div class="feeling-row" id="feelingRow" style="display:none;">
+    <div class="feeling-label">How did that feel?</div>
+    <div class="feeling-btns">
+      <button class="feeling-btn" onclick="setFeeling('easy')">Easy</button>
+      <button class="feeling-btn" onclick="setFeeling('medium')">Medium</button>
+      <button class="feeling-btn" onclick="setFeeling('hard')">Hard</button>
+    </div>
+  </div>
 </div>
 
 <!-- SESSION LOG VIEW -->
@@ -334,12 +350,16 @@
     </div>
     <div class="tabs">
       <div class="tab active" data-tab="execution" onclick="switchTab('execution')">Execution</div>
+      <div class="tab" data-tab="muscles" onclick="switchTab('muscles')">Muscle groups</div>
       <div class="tab" data-tab="guide" onclick="switchTab('guide')">Guide</div>
       <div class="tab" data-tab="history" onclick="switchTab('history')">History</div>
     </div>
     <div class="tab-body" id="tabBody">
       <div class="tab-panel active" data-panel="execution">
         <div class="exec-seq" id="movementSvg"></div>
+      </div>
+      <div class="tab-panel" data-panel="muscles">
+        <div class="exec-seq" id="muscleImg"></div>
       </div>
       <div class="tab-panel" data-panel="guide">
         <p id="cueText"></p>
@@ -388,7 +408,7 @@ const EXERCISES = [
     movement:'assistedPullUp', defaultSets:[{reps:8,weight:20},{reps:8,weight:20},{reps:8,weight:20}] },
 
   { id:'singleArmRow', day:'A', name:'Single-Arm Cable Row', equip:'Cable crossover station, low pulley',
-    cue:"Pull elbow past your ribcage, squeeze the shoulder blade. Left arm does its full set before the right starts.",
+    cue:"Pull elbow past your ribcage, squeeze the shoulder blade. Right arm does its full set before the left starts, since your left is the stronger side.",
     muscles:{primary:['lats','upperBack'], secondary:['biceps']},
     notes:{mistakes:["Rotating your torso to help pull the weight, the power should come from your back, not a twist","Shrugging the shoulder up instead of driving the elbow back and down","Leaning too far back at the finish, a slight lean is fine but this shouldn't turn into a full-body swing"], angles:["Low pulley pulls at a slight upward angle into your torso, good general setup for lats","A slightly higher pulley setting shifts emphasis a bit more toward the upper back and rear delt"]},
     movement:'row', defaultSets:[{reps:11,weight:15},{reps:11,weight:15},{reps:11,weight:15},{reps:11,weight:15}] },
@@ -406,7 +426,7 @@ const EXERCISES = [
     movement:'legPress', defaultSets:[{reps:13,weight:60},{reps:13,weight:60}] },
 
   { id:'standingCablePress', day:'A', name:'Standing Single-Arm Cable Press', equip:'Cable tower, chest-height pulley, single handle, standing',
-    cue:"Stand side-on to the tower, press the handle straight out from your chest without letting your torso rotate. Left arm first.",
+    cue:"Stand side-on to the tower, press the handle straight out from your chest without letting your torso rotate. Right arm first, since your left is the stronger side.",
     muscles:{primary:['chest'], secondary:['frontDelt','triceps','abs']},
     notes:{mistakes:["Rotating your torso to help finish the press, the resistance should be fought with your core staying square, not a twist","Letting the shoulder round forward at the start instead of keeping it set back and down","Standing too close to the tower means not enough tension at the start of the press"], angles:["Pulley at chest height keeps the pressing line matching a standard chest press","Standing further from the tower increases the anti-rotation demand on your core, useful once the base movement feels easy"]},
     movement:'standingCablePress', defaultSets:[{reps:12,weight:7.5},{reps:12,weight:7.5},{reps:12,weight:7.5}] },
@@ -424,7 +444,7 @@ const EXERCISES = [
     movement:'pecFly', defaultSets:[{reps:13,weight:15},{reps:13,weight:15},{reps:13,weight:15}] },
 
   { id:'cableCrossover', day:'B', name:'Single-Arm Cable Crossover', equip:'Cable tower, high pulley, single handle',
-    cue:"Pulley set high. Twist slightly away from the machine, then punch the handle diagonally across your body toward your opposite hip, slight bend in the elbow, squeeze your chest hard at the bottom. Left arm goes first.",
+    cue:"Pulley set high. Twist slightly away from the machine, then punch the handle diagonally across your body toward your opposite hip, slight bend in the elbow, squeeze your chest hard at the bottom. Right arm goes first, since your left is the stronger side.",
     muscles:{primary:['chest'], secondary:['frontDelt']},
     notes:{mistakes:["Losing the slight elbow bend and turning it into a straight-arm swing shifts stress onto the elbow joint instead of the chest","Rotating your torso too far, the power comes from the chest squeezing, not from spinning your hips","Standing too close to the machine means not enough tension at the starting stretch"], angles:["Pulley high, pulling down and across to your opposite hip (your current setup) emphasizes the lower chest","Pulley low, pulling up and across toward the opposite shoulder emphasizes the upper chest instead","Pulley at shoulder height, pulling straight across, hits the middle of the chest, the most neutral version. Worth alternating pulley height by session for more complete development over time"]},
     movement:'cableCrossover', defaultSets:[{reps:12,weight:7.5},{reps:12,weight:7.5},{reps:12,weight:7.5}] },
@@ -587,10 +607,12 @@ function openDetail(id){
   document.getElementById('modalName').textContent = e.name;
   document.getElementById('cueText').textContent = e.cue;
   document.getElementById('saveConfirm').textContent = '';
+  document.getElementById('feelingRow').style.display = 'none';
   stopRestTimer();
 
   renderSets();
   renderMovement(e.movement);
+  renderMuscleImage(e.movement);
   renderModalHistory(id);
   renderNotes(e.notes);
 
@@ -618,7 +640,7 @@ function buildSessions(){
       if(!dayMap[key]) dayMap[key] = {};
       const existing = dayMap[key][exerciseId];
       if(!existing || new Date(entry.date) > new Date(existing.date)){
-        dayMap[key][exerciseId] = { date: entry.date, exerciseName: ex.name, sets: entry.sets };
+        dayMap[key][exerciseId] = { date: entry.date, exerciseName: ex.name, sets: entry.sets, feeling: entry.feeling };
       }
     });
   }
@@ -669,7 +691,10 @@ function renderSessionLog(){
   wrap.innerHTML = sessions.map(s => {
     const dateStr = s.dateObj.toLocaleDateString(undefined, {weekday:'long', month:'short', day:'numeric'});
     const durationStr = s.durationMin > 0 ? `${s.durationMin} min` : 'single exercise';
-    const exList = s.exercises.map(e => `<div class="session-ex-row"><span>${e.exerciseName}</span><span>${e.sets.length} set${e.sets.length===1?'':'s'}</span></div>`).join('');
+    const exList = s.exercises.map(e => {
+      const feelingBadge = e.feeling ? `<span class="feeling-badge feeling-${e.feeling}">${e.feeling}</span>` : '';
+      return `<div class="session-ex-row"><span>${e.exerciseName}${feelingBadge}</span><span>${e.sets.length} set${e.sets.length===1?'':'s'}</span></div>`;
+    }).join('');
     return `
       <div class="session-card">
         <div class="session-date">${dateStr}</div>
@@ -780,13 +805,24 @@ function removeSet(i){
 }
 
 async function saveWorkout(){
-  const entry = { date: new Date().toISOString(), sets: JSON.parse(JSON.stringify(sets)) };
+  const entry = { date: new Date().toISOString(), sets: JSON.parse(JSON.stringify(sets)), feeling: null };
   if(!history[currentExerciseId]) history[currentExerciseId] = [];
   history[currentExerciseId].unshift(entry);
   await persistHistory();
   renderModalHistory(currentExerciseId);
+  document.getElementById('saveConfirm').textContent = 'Saved, this stays in your history from now on.';
+  document.getElementById('feelingRow').style.display = 'block';
+}
+
+async function setFeeling(value){
+  const entry = history[currentExerciseId] && history[currentExerciseId][0];
+  if(!entry) return;
+  entry.feeling = value;
+  await persistHistory();
+  document.getElementById('feelingRow').style.display = 'none';
   const conf = document.getElementById('saveConfirm');
-  conf.textContent = 'Saved, this stays in your history from now on.';
+  conf.textContent = `Saved, felt ${value}.`;
+  renderModalHistory(currentExerciseId);
   setTimeout(()=>{ conf.textContent=''; }, 2500);
 }
 
@@ -941,10 +977,11 @@ function renderModalHistory(id){
     const d = new Date(entry.date);
     const dateStr = d.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'});
     const summary = entry.sets.map(s => s.weight > 0 ? `${s.weight}kg x ${s.reps}` : `${s.reps}s`).join(', ');
+    const feelingBadge = entry.feeling ? `<span class="feeling-badge feeling-${entry.feeling}">${entry.feeling}</span>` : '';
     return `<div class="history-row">
       <div class="history-delete-bg" onclick="deleteHistoryEntry('${id}', ${i}, true)">Delete</div>
       <div class="history-item">
-        <div class="history-text"><span>${dateStr}</span><b style="text-align:right; max-width:60%;">${summary}</b></div>
+        <div class="history-text"><span>${dateStr}${feelingBadge}</span><b style="text-align:right; max-width:60%;">${summary}</b></div>
         <button class="del-history" onclick="deleteHistoryEntry('${id}', ${i})">&times;</button>
       </div>
     </div>`;
@@ -1014,6 +1051,14 @@ function renderMovement(kind){
   document.getElementById('movementSvg').innerHTML = `
     <div class="exec-panel">
       <img src="img/${kind}.png" alt="Execution diagram" loading="lazy">
+    </div>
+  `;
+}
+
+function renderMuscleImage(kind){
+  document.getElementById('muscleImg').innerHTML = `
+    <div class="exec-panel">
+      <img src="img/muscles-${kind}.png" alt="Muscle groups worked" loading="lazy">
     </div>
   `;
 }
