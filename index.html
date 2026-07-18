@@ -27,6 +27,13 @@
   header{
     padding:24px 16px 14px;
     border-bottom:1px solid var(--card-line);
+    display:flex; justify-content:space-between; align-items:flex-start; gap:12px;
+  }
+  .header-actions{ display:flex; gap:8px; flex-shrink:0; margin-top:2px; }
+  .header-btn{
+    font-size:11px; font-weight:700; letter-spacing:0.02em;
+    color:var(--dim); background:none; border:1px solid var(--card-line);
+    border-radius:20px; padding:6px 12px; white-space:nowrap;
   }
   .eyebrow{
     font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
@@ -94,6 +101,7 @@
 
   /* detail page */
   #detailView{ display:none; }
+  #sessionLogView{ display:none; }
   .detail-head{
     display:flex; align-items:center; gap:10px;
     padding:18px 16px 12px;
@@ -185,6 +193,45 @@
   .exec-panel img{ width:100%; height:auto; display:block; }
 
   .history-list{ }
+  .backup-body{ padding:4px 16px 24px; }
+  .backup-desc{ font-size:13px; color:var(--dim); line-height:1.5; margin-bottom:16px; }
+  .backup-btn{ width:100%; padding:14px; border:none; border-radius:8px; font-size:14px; font-weight:700; margin-bottom:10px; }
+  .backup-btn.primary{ background:var(--accent); color:#fff; }
+  .backup-btn.secondary{ background:var(--idle); color:var(--ink); }
+  .backup-status{ text-align:center; font-size:12px; color:var(--dim); padding-top:6px; min-height:16px; }
+  .hidden-file-input{ display:none; }
+  .rest-row{ margin:10px 16px 0; }
+  .rest-start-btn{
+    width:100%; padding:11px; background:none; border:1px solid var(--card-line);
+    border-radius:8px; color:var(--dim); font-size:13px; font-weight:700;
+  }
+  .rest-active{
+    display:flex; align-items:center; gap:10px;
+    padding:10px 14px; background:var(--card); border:1px solid var(--card-line); border-radius:8px;
+  }
+  .rest-time{ font-size:15px; font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums; min-width:20px; }
+  .rest-bar{ flex:1; height:3px; background:var(--idle); border-radius:2px; overflow:hidden; }
+  .rest-bar-fill{ height:100%; width:100%; background:var(--dim); border-radius:2px; transition:width 1s linear; }
+  .rest-cancel-btn{ background:none; border:none; color:var(--dim); font-size:12px; font-weight:700; padding:4px 6px; flex-shrink:0; }
+  .session-card{ background:var(--card); border:1px solid var(--card-line); border-radius:10px; padding:14px; }
+  .session-date{ font-size:14px; font-weight:700; }
+  .session-meta{ font-size:11.5px; color:var(--dim); margin-top:2px; }
+  .session-ex-list{ display:flex; flex-direction:column; margin-top:10px; }
+  .session-ex-row{ display:flex; justify-content:space-between; font-size:12.5px; color:var(--dim); padding:7px 0; border-top:1px solid var(--card-line); }
+  .session-ex-row span:first-child{ color:var(--ink); }
+  .trend{ font-size:8px; margin-left:4px; }
+  .trend-up{ color:var(--accent); }
+  .trend-down{ color:var(--dim); }
+  .trend-flat{ color:var(--dim); }
+  .trend-chart{ margin-bottom:14px; }
+  .trend-chart-svg{ width:100%; height:60px; display:block; }
+  .trend-chart-line{ fill:none; stroke:var(--accent); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  .trend-chart-dot{ fill:var(--accent); }
+  .trend-chart-range{ display:flex; justify-content:space-between; font-size:10px; color:var(--dim); margin-top:4px; }
+  .session-trend{ padding:14px 16px 0; }
+  .session-trend-label{ font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--dim); margin-bottom:8px; }
+  .session-trend-svg{ width:100%; height:70px; display:block; }
+  .session-bar{ fill:var(--accent-secondary); }
   .notes-list{ display:flex; flex-direction:column; gap:10px; }
   .note-block{ font-size:12.5px; color:var(--dim); line-height:1.5; }
   .note-block b{ color:var(--ink); display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px; }
@@ -212,8 +259,14 @@
 <!-- HUB VIEW -->
 <div id="hubView">
   <header>
-    <div class="eyebrow">TrainMore, 1e Middellandstraat</div>
-    <h1>Session Map</h1>
+    <div>
+      <div class="eyebrow">TrainMore, 1e Middellandstraat</div>
+      <h1>Session Map</h1>
+    </div>
+    <div class="header-actions">
+      <button class="header-btn" onclick="openSessionLog()">History</button>
+      <button class="header-btn" onclick="openBackup()">Backup</button>
+    </div>
   </header>
   <div class="day-toggle">
     <button class="day-btn active" data-day="A" onclick="setDay('A')">Full Body A</button>
@@ -242,8 +295,31 @@
     <div id="setsList"></div>
     <button class="add-set" onclick="addSet()">+ Add set</button>
   </div>
+
+  <div class="rest-row">
+    <button class="rest-start-btn" id="restStartBtn" onclick="startRest()">Start rest</button>
+    <div class="rest-active" id="restActive" style="display:none;">
+      <span class="rest-time" id="restTime">60</span>
+      <div class="rest-bar"><div class="rest-bar-fill" id="restBarFill"></div></div>
+      <button class="rest-cancel-btn" onclick="cancelRest()">Cancel</button>
+    </div>
+  </div>
+
   <button class="save-btn" onclick="saveWorkout()">Save this session</button>
   <div class="save-confirm" id="saveConfirm"></div>
+</div>
+
+<!-- SESSION LOG VIEW -->
+<div id="sessionLogView">
+  <div class="detail-head">
+    <button class="back-btn" onclick="closeSessionLog()">&larr;</button>
+    <div class="detail-title">
+      <div class="ex-name">Session Log</div>
+      <div class="ex-equip">Every gym visit, grouped by day</div>
+    </div>
+  </div>
+  <div class="session-trend" id="sessionTrendWrap"></div>
+  <div class="list" id="sessionLogList"></div>
 </div>
 
 <!-- MODAL -->
@@ -270,8 +346,27 @@
         <div class="notes-list" id="notesList"></div>
       </div>
       <div class="tab-panel" data-panel="history">
+        <div class="trend-chart" id="trendChartWrap"></div>
         <div class="history-list" id="modalHistory"></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- BACKUP OVERLAY -->
+<div class="overlay" id="backupOverlay" onclick="closeBackup()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle-zone"><div class="modal-handle"></div></div>
+    <div class="modal-head">
+      <h2>Backup</h2>
+      <button class="close-btn" onclick="closeBackup()">&times;</button>
+    </div>
+    <div class="backup-body">
+      <p class="backup-desc">Your history only lives on this phone. Export a backup file now and then &mdash; if you ever lose this device or clear Safari's data, import it here to restore everything.</p>
+      <button class="backup-btn primary" onclick="exportBackup()">Export backup</button>
+      <button class="backup-btn secondary" onclick="triggerImport()">Import backup</button>
+      <input type="file" id="importFileInput" class="hidden-file-input" accept="application/json" onchange="importBackup(event)">
+      <div class="backup-status" id="backupStatus"></div>
     </div>
   </div>
 </div>
@@ -429,13 +524,26 @@ function setDay(day){
   renderHub();
 }
 
+function topWeight(entry){
+  return entry.sets.reduce((a,b)=> b.weight > a.weight ? b : a, entry.sets[0]).weight;
+}
+
+function trendArrow(h){
+  if(h.length < 2) return '';
+  const latest = topWeight(h[0]);
+  const prev = topWeight(h[1]);
+  if(latest > prev) return '<span class="trend trend-up">&#9650;</span>';
+  if(latest < prev) return '<span class="trend trend-down">&#9660;</span>';
+  return '<span class="trend trend-flat">&minus;</span>';
+}
+
 function cardHtml(e){
   const h = history[e.id] || [];
   const last = h[0];
   let lastPill = '';
   if(last){
-    const top = last.sets.reduce((a,b)=> b.weight > a.weight ? b : a, last.sets[0]);
-    lastPill = top.weight > 0 ? `<span class="pill last">Last ${top.weight}kg</span>` : `<span class="pill last">Logged</span>`;
+    const top = topWeight(last);
+    lastPill = top > 0 ? `<span class="pill last">Last ${top}kg${trendArrow(h)}</span>` : `<span class="pill last">Logged</span>`;
   }
   return `
     <div class="ex-card" onclick="openDetail('${e.id}')">
@@ -479,6 +587,7 @@ function openDetail(id){
   document.getElementById('modalName').textContent = e.name;
   document.getElementById('cueText').textContent = e.cue;
   document.getElementById('saveConfirm').textContent = '';
+  stopRestTimer();
 
   renderSets();
   renderMovement(e.movement);
@@ -491,9 +600,136 @@ function openDetail(id){
 }
 
 function goHub(){
+  stopRestTimer();
   document.getElementById('detailView').style.display = 'none';
   document.getElementById('hubView').style.display = 'block';
   renderHub();
+}
+
+/* ---------- SESSION LOG ---------- */
+
+function buildSessions(){
+  const dayMap = {};
+  for(const exerciseId in history){
+    const ex = EXERCISES.find(x => x.id === exerciseId);
+    if(!ex) continue;
+    history[exerciseId].forEach(entry => {
+      const key = new Date(entry.date).toDateString();
+      if(!dayMap[key]) dayMap[key] = {};
+      const existing = dayMap[key][exerciseId];
+      if(!existing || new Date(entry.date) > new Date(existing.date)){
+        dayMap[key][exerciseId] = { date: entry.date, exerciseName: ex.name, sets: entry.sets };
+      }
+    });
+  }
+  const sessions = Object.keys(dayMap).map(key => {
+    const items = Object.values(dayMap[key]).sort((a,b) => new Date(a.date) - new Date(b.date));
+    const timestamps = items.map(i => new Date(i.date).getTime());
+    const durationMin = Math.max(0, Math.round((Math.max(...timestamps) - Math.min(...timestamps)) / 60000));
+    return {
+      dateObj: new Date(items[0].date),
+      exercises: items,
+      exerciseCount: items.length,
+      totalSets: items.reduce((sum,i) => sum + i.sets.length, 0),
+      durationMin
+    };
+  });
+  sessions.sort((a,b) => b.dateObj - a.dateObj);
+  return sessions;
+}
+
+function renderSessionTrendChart(sessions){
+  const wrap = document.getElementById('sessionTrendWrap');
+  if(sessions.length < 2){ wrap.innerHTML = ''; return; }
+  const points = sessions.slice(0, 10).reverse();
+  const counts = points.map(s => s.exerciseCount);
+  const max = Math.max(...counts, 1);
+  const W = 320, H = 70, barGap = 6;
+  const barWidth = (W - barGap * (points.length - 1)) / points.length;
+  const bars = points.map((s,i) => {
+    const barH = (s.exerciseCount / max) * (H - 16);
+    const x = i * (barWidth + barGap);
+    const y = H - barH;
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${barH.toFixed(1)}" rx="2" class="session-bar"/>`;
+  }).join('');
+  wrap.innerHTML = `
+    <div class="session-trend-label">Exercises per session, last ${points.length}</div>
+    <svg viewBox="0 0 ${W} ${H}" class="session-trend-svg">${bars}</svg>
+  `;
+}
+
+function renderSessionLog(){
+  const sessions = buildSessions();
+  const wrap = document.getElementById('sessionLogList');
+  renderSessionTrendChart(sessions);
+  if(sessions.length === 0){
+    wrap.innerHTML = '<div class="empty">No sessions logged yet.</div>';
+    return;
+  }
+  wrap.innerHTML = sessions.map(s => {
+    const dateStr = s.dateObj.toLocaleDateString(undefined, {weekday:'long', month:'short', day:'numeric'});
+    const durationStr = s.durationMin > 0 ? `${s.durationMin} min` : 'single exercise';
+    const exList = s.exercises.map(e => `<div class="session-ex-row"><span>${e.exerciseName}</span><span>${e.sets.length} set${e.sets.length===1?'':'s'}</span></div>`).join('');
+    return `
+      <div class="session-card">
+        <div class="session-date">${dateStr}</div>
+        <div class="session-meta">${s.exerciseCount} exercise${s.exerciseCount===1?'':'s'} &middot; ${s.totalSets} sets &middot; ${durationStr}</div>
+        <div class="session-ex-list">${exList}</div>
+      </div>`;
+  }).join('');
+}
+
+function openSessionLog(){
+  renderSessionLog();
+  document.getElementById('hubView').style.display = 'none';
+  document.getElementById('sessionLogView').style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+function closeSessionLog(){
+  document.getElementById('sessionLogView').style.display = 'none';
+  document.getElementById('hubView').style.display = 'block';
+}
+
+/* ---------- REST TIMER ---------- */
+
+let restInterval = null;
+let restRemaining = 0;
+const REST_DURATION = 60;
+
+function startRest(){
+  restRemaining = REST_DURATION;
+  document.getElementById('restStartBtn').style.display = 'none';
+  document.getElementById('restActive').style.display = 'flex';
+  document.getElementById('restBarFill').style.transition = 'none';
+  updateRestDisplay();
+  requestAnimationFrame(() => {
+    document.getElementById('restBarFill').style.transition = 'width 1s linear';
+  });
+  restInterval = setInterval(() => {
+    restRemaining--;
+    if(restRemaining <= 0){
+      stopRestTimer();
+      return;
+    }
+    updateRestDisplay();
+  }, 1000);
+}
+
+function updateRestDisplay(){
+  document.getElementById('restTime').textContent = restRemaining;
+  document.getElementById('restBarFill').style.width = (restRemaining / REST_DURATION * 100) + '%';
+}
+
+function cancelRest(){ stopRestTimer(); }
+
+function stopRestTimer(){
+  clearInterval(restInterval);
+  restInterval = null;
+  const active = document.getElementById('restActive');
+  const startBtn = document.getElementById('restStartBtn');
+  if(active) active.style.display = 'none';
+  if(startBtn) startBtn.style.display = 'block';
 }
 
 function renderSets(){
@@ -559,6 +795,58 @@ async function saveWorkout(){
 function openModal(){ document.getElementById('overlay').classList.add('open'); }
 function closeModal(){ document.getElementById('overlay').classList.remove('open'); }
 
+/* ---------- BACKUP ---------- */
+
+function openBackup(){
+  document.getElementById('backupStatus').textContent = '';
+  document.getElementById('backupOverlay').classList.add('open');
+}
+function closeBackup(){ document.getElementById('backupOverlay').classList.remove('open'); }
+
+function exportBackup(){
+  const blob = new Blob([JSON.stringify(history, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `session-tracker-backup-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  document.getElementById('backupStatus').textContent = 'Backup downloaded.';
+}
+
+function triggerImport(){ document.getElementById('importFileInput').click(); }
+
+async function importBackup(event){
+  const file = event.target.files[0];
+  event.target.value = '';
+  if(!file) return;
+  const status = document.getElementById('backupStatus');
+  try{
+    const text = await file.text();
+    const imported = JSON.parse(text);
+    let addedCount = 0;
+    for(const exerciseId in imported){
+      if(!history[exerciseId]) history[exerciseId] = [];
+      const existingDates = new Set(history[exerciseId].map(e => e.date));
+      for(const entry of imported[exerciseId]){
+        if(!existingDates.has(entry.date)){
+          history[exerciseId].push(entry);
+          addedCount++;
+        }
+      }
+      history[exerciseId].sort((a,b) => new Date(b.date) - new Date(a.date));
+    }
+    await persistHistory();
+    renderHub();
+    status.textContent = addedCount > 0 ? `Imported ${addedCount} session${addedCount===1?'':'s'}.` : 'Nothing new to import.';
+  }catch(err){
+    status.textContent = 'Could not read that file.';
+  }
+}
+
 function switchTab(name){
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab===name));
 
@@ -617,9 +905,37 @@ function switchTab(name){
   handle.addEventListener('touchend', onEnd);
 })();
 
+function renderTrendChart(id){
+  const h = history[id] || [];
+  const wrap = document.getElementById('trendChartWrap');
+  const weighted = h.filter(entry => entry.sets.some(s => s.weight > 0));
+  if(weighted.length < 2){ wrap.innerHTML = ''; return; }
+  const points = weighted.slice(0, 12).reverse();
+  const weights = points.map(topWeight);
+  const max = Math.max(...weights);
+  const min = Math.min(...weights);
+  const range = max - min || 1;
+  const W = 280, H = 60, pad = 8;
+  const stepX = points.length > 1 ? (W - pad*2) / (points.length - 1) : 0;
+  const coords = weights.map((w,i) => [
+    pad + i * stepX,
+    H - pad - ((w - min) / range) * (H - pad*2)
+  ]);
+  const pathD = coords.map((c,i) => (i===0?'M':'L') + c[0].toFixed(1) + ',' + c[1].toFixed(1)).join(' ');
+  const last = coords[coords.length - 1];
+  wrap.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" class="trend-chart-svg">
+      <path d="${pathD}" class="trend-chart-line"/>
+      <circle cx="${last[0]}" cy="${last[1]}" r="3" class="trend-chart-dot"/>
+    </svg>
+    <div class="trend-chart-range"><span>${min}kg</span><span>${max}kg</span></div>
+  `;
+}
+
 function renderModalHistory(id){
   const h = history[id] || [];
   const wrap = document.getElementById('modalHistory');
+  renderTrendChart(id);
   if(h.length === 0){ wrap.innerHTML = '<div class="empty">No sessions logged yet for this exercise.</div>'; return; }
   wrap.innerHTML = h.map((entry, i) => {
     const d = new Date(entry.date);
