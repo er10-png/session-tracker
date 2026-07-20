@@ -138,6 +138,19 @@
   .set-num{ font-size:13px; color:var(--dim); width:16px; }
   .field-group{ display:flex; flex-direction:column; }
   .field-label{ font-size:9px; color:var(--dim); text-transform:uppercase; margin-bottom:3px; letter-spacing:0.06em; }
+  .unilateral-sets{ display:flex; flex-direction:column; }
+  .side-block + .side-block{ border-top:1px solid var(--card-line); }
+  .side-label{
+    display:flex; align-items:center; gap:8px; padding:10px 14px;
+    font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink);
+    background:#161619;
+  }
+  .side-tag{
+    font-size:9.5px; font-weight:700; text-transform:none; letter-spacing:0.02em;
+    color:var(--accent); background:var(--accent-dim); padding:2px 8px; border-radius:20px;
+  }
+  .history-side-group{ padding:0 0 8px 4px; }
+  .history-side-label{ font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; color:var(--dim); padding:8px 0 2px; }
   .field{
     display:flex; align-items:center;
     background:#0f0f11;
@@ -492,6 +505,9 @@
 <script>
 /* ---------- DATA ---------- */
 
+const WEAK_SIDE = 'right';
+const STRONG_SIDE = 'left';
+
 const EXERCISES = [
   { id:'chestPress', day:'A', name:'Chest Press', equip:'Smith machine or flat bench and barbell',
     cue:"Press straight up, don't flare elbows past 75 degrees. Full stretch at the bottom.",
@@ -505,14 +521,14 @@ const EXERCISES = [
     notes:{mistakes:["Shrugging your shoulders up toward your ears takes tension off your lats and puts it on your traps","Using momentum or bouncing at the bottom instead of a controlled dead hang start","Grip too wide feels stronger but shortens your range of motion, closer to shoulder width usually works better"], angles:["More assistance weight on the stack means less of your bodyweight you're lifting, this machine's numbers work in reverse from most others","If your gym's machine has a chin-up handle option (palms facing you), that shifts more work onto biceps, useful for variety later"]},
     movement:'assistedPullUp', defaultSets:[{reps:8,weight:20},{reps:8,weight:20},{reps:8,weight:20}] },
 
-  { id:'singleArmRow', day:'A', name:'Single-Arm Cable Row', equip:'Cable crossover station, low pulley',
+  { id:'singleArmRow', day:'A', name:'Single-Arm Cable Row', equip:'Cable crossover station, low pulley', unilateral:true,
     cue:"Pull elbow past your ribcage, squeeze the shoulder blade. Right arm does its full set before the left starts, since your left is the stronger side.",
     muscles:{primary:['lats','upperBack'], secondary:['biceps']},
     notes:{mistakes:["Rotating your torso to help pull the weight, the power should come from your back, not a twist","Shrugging the shoulder up instead of driving the elbow back and down","Leaning too far back at the finish, a slight lean is fine but this shouldn't turn into a full-body swing"], angles:["Low pulley pulls at a slight upward angle into your torso, good general setup for lats","A slightly higher pulley setting shifts emphasis a bit more toward the upper back and rear delt"]},
     movement:'row', defaultSets:[{reps:11,weight:15},{reps:11,weight:15},{reps:11,weight:15},{reps:11,weight:15}] },
 
-  { id:'shoulderPress', day:'A', name:'Single-Arm Shoulder Press', equip:'Dumbbell, seated on adjustable bench',
-    cue:"Press straight overhead, don't let your torso lean to help. If it leans, the weight is too heavy.",
+  { id:'shoulderPress', day:'A', name:'Single-Arm Shoulder Press', equip:'Dumbbell, seated on adjustable bench', unilateral:true,
+    cue:"Press straight overhead, don't let your torso lean to help. If it leans, the weight is too heavy. Right arm first, since your left is the stronger side.",
     muscles:{primary:['frontDelt'], secondary:['triceps']},
     notes:{mistakes:["Torso leaning to help push the weight up, if it leans, the weight is too heavy, not a stronger rep","Pressing the dumbbell forward instead of straight up puts extra stress on the shoulder joint","Not locking out fully at the top loses part of the range you're paying for"], angles:["Bench upright at 90 degrees is standard for this. Reclining it slightly shifts more work onto the upper chest and away from the shoulder, not what you want here"]},
     movement:'shoulderPress', defaultSets:[{reps:11,weight:10},{reps:11,weight:10},{reps:11,weight:10}] },
@@ -523,7 +539,7 @@ const EXERCISES = [
     notes:{mistakes:["Lower back rounding off the pad at the bottom, a sign you've gone deeper than your hips can control safely","Locking your knees out fully at the top puts the stress on the joint instead of the muscle","Feet too low on the platform overloads the knees, too high overloads the lower back"], angles:["Feet placed higher and wider on the platform shifts more work to glutes and hamstrings","Feet placed lower and closer together shifts more work to the quads, which is the setup you want given your goal here"]},
     movement:'legPress', defaultSets:[{reps:13,weight:60},{reps:13,weight:60}] },
 
-  { id:'standingCablePress', day:'A', name:'Standing Single-Arm Cable Press', equip:'Cable tower, chest-height pulley, single handle, standing',
+  { id:'standingCablePress', day:'A', name:'Standing Single-Arm Cable Press', equip:'Cable tower, chest-height pulley, single handle, standing', unilateral:true,
     cue:"Stand side-on to the tower, press the handle straight out from your chest without letting your torso rotate. Right arm first, since your left is the stronger side.",
     muscles:{primary:['chest'], secondary:['frontDelt','triceps','abs']},
     notes:{mistakes:["Rotating your torso to help finish the press, the resistance should be fought with your core staying square, not a twist","Letting the shoulder round forward at the start instead of keeping it set back and down","Standing too close to the tower means not enough tension at the start of the press"], angles:["Pulley at chest height keeps the pressing line matching a standard chest press","Standing further from the tower increases the anti-rotation demand on your core, useful once the base movement feels easy"]},
@@ -541,7 +557,7 @@ const EXERCISES = [
     notes:{mistakes:["This is the most common failure point on this machine, if you only feel your shoulders, it's almost always the seat height, not something you're doing wrong technique-wise","Letting your elbows travel behind your torso at the bottom overstretches the front of the shoulder joint","Using momentum to slam the pads together instead of a slow, controlled squeeze"], angles:["The parallel rule: seated normally with handles gripped, your upper arms should be parallel to the floor, elbows roughly level with your shoulders, not above or below","If elbows sit above your shoulders the seat is too low, if they sit below it's too high, this machine has one correct position rather than several angle options"]},
     movement:'pecFly', defaultSets:[{reps:13,weight:15},{reps:13,weight:15},{reps:13,weight:15}] },
 
-  { id:'cableCrossover', day:'B', name:'Single-Arm Cable Crossover', equip:'Cable tower, high pulley, single handle',
+  { id:'cableCrossover', day:'B', name:'Single-Arm Cable Crossover', equip:'Cable tower, high pulley, single handle', unilateral:true,
     cue:"Pulley set high. Twist slightly away from the machine, then punch the handle diagonally across your body toward your opposite hip, slight bend in the elbow, squeeze your chest hard at the bottom. Right arm goes first, since your left is the stronger side.",
     muscles:{primary:['chest'], secondary:['frontDelt']},
     notes:{mistakes:["Losing the slight elbow bend and turning it into a straight-arm swing shifts stress onto the elbow joint instead of the chest","Rotating your torso too far, the power comes from the chest squeezing, not from spinning your hips","Standing too close to the machine means not enough tension at the starting stretch"], angles:["Pulley high, pulling down and across to your opposite hip (your current setup) emphasizes the lower chest","Pulley low, pulling up and across toward the opposite shoulder emphasizes the upper chest instead","Pulley at shoulder height, pulling straight across, hits the middle of the chest, the most neutral version. Worth alternating pulley height by session for more complete development over time"]},
@@ -559,8 +575,8 @@ const EXERCISES = [
     notes:{mistakes:["Pulling with the arms alone instead of driving the elbows back and high, this should feel like squeezing your shoulder blades together","Letting the elbows drop below shoulder height turns this into more of a row than a face pull","Using too much weight, which forces you to lean back and lose the posture-correcting purpose of the exercise"], angles:["Pulley set at roughly eye or forehead height keeps the pulling angle correct for rear delts and upper back"]},
     movement:'facePull', defaultSets:[{reps:15,weight:10},{reps:15,weight:10}] },
 
-  { id:'bulgarianSplitSquat', day:'B', name:'Bulgarian Split Squat', equip:'Flat bench, pair of dumbbells',
-    cue:"Rear foot laces down on the bench, front knee tracks over the toes. Skating already asks a lot of one stance, this evens it out.",
+  { id:'bulgarianSplitSquat', day:'B', name:'Bulgarian Split Squat', equip:'Flat bench, pair of dumbbells', unilateral:true,
+    cue:"Rear foot laces down on the bench, front knee tracks over the toes. Skating already asks a lot of one stance, this evens it out. Right leg goes first, since your left is the stronger side.",
     muscles:{primary:['quads','glutes'], secondary:['hamstrings']},
     notes:{mistakes:["Front knee caving inward instead of tracking over your toes, a common early wobble as you learn the balance","Rear foot too close to the front foot cramps your range, give yourself a longer stride than feels natural at first","Leaning too far forward shifts the work toward the knee instead of the glute"], angles:["A more upright torso emphasizes the quad more","Leaning the torso forward slightly shifts more emphasis onto the glute, worth trying both once the balance feels solid"]},
     movement:'splitSquat', defaultSets:[{reps:9,weight:10},{reps:9,weight:10},{reps:9,weight:10}] },
@@ -642,8 +658,19 @@ function setDay(day){
   renderHub();
 }
 
+function primarySets(entrySets){
+  return (entrySets && entrySets[WEAK_SIDE]) ? entrySets[WEAK_SIDE] : entrySets;
+}
+
+function setCount(entrySets){
+  return (entrySets && entrySets.left && entrySets.right)
+    ? entrySets.left.length + entrySets.right.length
+    : entrySets.length;
+}
+
 function topWeight(entry){
-  return entry.sets.reduce((a,b)=> b.weight > a.weight ? b : a, entry.sets[0]).weight;
+  const s = primarySets(entry.sets);
+  return s.reduce((a,b)=> b.weight > a.weight ? b : a, s[0]).weight;
 }
 
 function trendArrow(h){
@@ -670,7 +697,7 @@ function cardHtml(e){
         <div class="ex-name">${e.name}</div>
         <div class="ex-equip">${e.equip}</div>
         <div class="ex-badges">
-          <span class="pill">${e.defaultSets.length} sets</span>
+          <span class="pill">${e.defaultSets.length} sets${e.unilateral ? '/side' : ''}</span>
           ${lastPill}
         </div>
       </div>
@@ -698,7 +725,13 @@ function openDetail(id){
   currentExerciseId = id;
   const e = EXERCISES.find(x => x.id === id);
   const h = history[id] || [];
-  sets = h[0] ? JSON.parse(JSON.stringify(h[0].sets)) : JSON.parse(JSON.stringify(e.defaultSets));
+  if(e.unilateral){
+    sets = (h[0] && h[0].sets && h[0].sets.left && h[0].sets.right)
+      ? JSON.parse(JSON.stringify(h[0].sets))
+      : { left: JSON.parse(JSON.stringify(e.defaultSets)), right: JSON.parse(JSON.stringify(e.defaultSets)) };
+  } else {
+    sets = h[0] ? JSON.parse(JSON.stringify(h[0].sets)) : JSON.parse(JSON.stringify(e.defaultSets));
+  }
 
   document.getElementById('detailName').textContent = e.name;
   document.getElementById('detailEquip').textContent = e.equip;
@@ -752,7 +785,7 @@ function buildSessions(){
       dateObj: new Date(items[0].date),
       exercises: items,
       exerciseCount: items.length,
-      totalSets: items.reduce((sum,i) => sum + i.sets.length, 0),
+      totalSets: items.reduce((sum,i) => sum + setCount(i.sets), 0),
       durationMin
     };
   });
@@ -793,7 +826,8 @@ function renderSessionLog(){
     const durationStr = s.durationMin > 0 ? `${s.durationMin} min` : 'single exercise';
     const exList = s.exercises.map(e => {
       const feelingDot = ['easy','solid','rough'].includes(e.feeling) ? `<span class="feeling-dot ${e.feeling}"></span>` : '';
-      return `<div class="session-ex-row"><span>${e.exerciseName}${feelingDot}</span><span>${e.sets.length} set${e.sets.length===1?'':'s'}</span></div>`;
+      const n = setCount(e.sets);
+      return `<div class="session-ex-row"><span>${e.exerciseName}${feelingDot}</span><span>${n} set${n===1?'':'s'}</span></div>`;
     }).join('');
     return `
       <div class="session-card">
@@ -940,50 +974,91 @@ function stopRestTimer(){
   if(startBtn) startBtn.style.display = 'block';
 }
 
-function renderSets(){
-  const isTimeBased = sets.every(s => s.weight === 0) && currentExerciseId === 'plank';
-  const list = document.getElementById('setsList');
-  list.innerHTML = sets.map((s,i) => `
+function isUnilateral(exerciseId){
+  const e = EXERCISES.find(x => x.id === exerciseId);
+  return !!(e && e.unilateral);
+}
+
+function setRowHtml(s, i, side, isTimeBased){
+  const sideArg = side ? `,'${side}'` : '';
+  return `
     <div class="set-row">
       <div class="set-num">${i+1}</div>
       <div class="field-group">
         <div class="field-label">${isTimeBased ? 'Seconds' : 'Reps'}</div>
         <div class="field">
-          <button class="stepper-btn" onclick="adjust(${i},'reps',-1)">-</button>
-          <input type="number" inputmode="numeric" value="${s.reps}" onchange="setVal(${i},'reps',this.value)">
-          <button class="stepper-btn" onclick="adjust(${i},'reps',1)">+</button>
+          <button class="stepper-btn" onclick="adjust(${i},'reps',-1${sideArg})">-</button>
+          <input type="number" inputmode="numeric" value="${s.reps}" onchange="setVal(${i},'reps',this.value${sideArg})">
+          <button class="stepper-btn" onclick="adjust(${i},'reps',1${sideArg})">+</button>
         </div>
       </div>
       ${!isTimeBased ? `
       <div class="field-group">
         <div class="field-label">Weight, kg</div>
         <div class="field">
-          <button class="stepper-btn" onclick="adjust(${i},'weight',-2.5)">-</button>
-          <input type="number" inputmode="decimal" value="${s.weight}" onchange="setVal(${i},'weight',this.value)">
-          <button class="stepper-btn" onclick="adjust(${i},'weight',2.5)">+</button>
+          <button class="stepper-btn" onclick="adjust(${i},'weight',-2.5${sideArg})">-</button>
+          <input type="number" inputmode="decimal" value="${s.weight}" onchange="setVal(${i},'weight',this.value${sideArg})">
+          <button class="stepper-btn" onclick="adjust(${i},'weight',2.5${sideArg})">+</button>
         </div>
       </div>` : ''}
       <button class="del-set" onclick="removeSet(${i})">&times;</button>
     </div>
-  `).join('');
+  `;
 }
 
-function adjust(i, field, delta){
-  sets[i][field] = Math.max(0, sets[i][field] + delta);
+function renderSets(){
+  const list = document.getElementById('setsList');
+  const unilateral = isUnilateral(currentExerciseId);
+
+  if(unilateral){
+    const sideBlock = (side, label, tag) => `
+      <div class="side-block">
+        <div class="side-label">${label}${tag ? `<span class="side-tag">${tag}</span>` : ''}</div>
+        ${sets[side].map((s,i) => setRowHtml(s, i, side, false)).join('')}
+      </div>`;
+    list.innerHTML = `
+      <div class="unilateral-sets">
+        ${sideBlock(WEAK_SIDE, WEAK_SIDE === 'right' ? 'Right' : 'Left', 'Weak side, go first')}
+        ${sideBlock(STRONG_SIDE, STRONG_SIDE === 'right' ? 'Right' : 'Left', '')}
+      </div>`;
+  } else {
+    const isTimeBased = sets.every(s => s.weight === 0) && currentExerciseId === 'plank';
+    list.innerHTML = sets.map((s,i) => setRowHtml(s, i, null, isTimeBased)).join('');
+  }
+}
+
+function adjust(i, field, delta, side){
+  const arr = side ? sets[side] : sets;
+  arr[i][field] = Math.max(0, arr[i][field] + delta);
   renderSets();
 }
-function setVal(i, field, val){
-  sets[i][field] = parseFloat(val) || 0;
+function setVal(i, field, val, side){
+  const arr = side ? sets[side] : sets;
+  arr[i][field] = parseFloat(val) || 0;
   renderSets();
 }
 function addSet(){
-  const last = sets[sets.length-1] || {reps:10, weight:10};
-  sets.push({reps:last.reps, weight:last.weight});
+  if(isUnilateral(currentExerciseId)){
+    ['left','right'].forEach(side => {
+      const arr = sets[side];
+      const last = arr[arr.length-1] || {reps:10, weight:10};
+      arr.push({reps:last.reps, weight:last.weight});
+    });
+  } else {
+    const last = sets[sets.length-1] || {reps:10, weight:10};
+    sets.push({reps:last.reps, weight:last.weight});
+  }
   renderSets();
 }
 function removeSet(i){
-  if(sets.length <= 1) return;
-  sets.splice(i,1);
+  if(isUnilateral(currentExerciseId)){
+    if(sets.left.length <= 1) return;
+    sets.left.splice(i,1);
+    sets.right.splice(i,1);
+  } else {
+    if(sets.length <= 1) return;
+    sets.splice(i,1);
+  }
   renderSets();
 }
 
@@ -1127,7 +1202,7 @@ function switchTab(name){
 function renderTrendChart(id){
   const h = history[id] || [];
   const wrap = document.getElementById('trendChartWrap');
-  const weighted = h.filter(entry => entry.sets.some(s => s.weight > 0));
+  const weighted = h.filter(entry => primarySets(entry.sets).some(s => s.weight > 0));
   if(weighted.length < 2){
     wrap.innerHTML = '<div class="empty">Log a few more sessions to see your progress here.</div>';
     return;
@@ -1162,6 +1237,10 @@ function toggleHistoryRow(i){
   renderModalHistory(currentExerciseId);
 }
 
+function setBreakdownHtml(sideSets){
+  return sideSets.map((s,si) => `<div class="history-set-row"><span>Set ${si+1}</span><span>${s.weight > 0 ? `${s.weight}kg &times; ${s.reps}` : `${s.reps}s`}</span></div>`).join('');
+}
+
 function renderModalHistory(id){
   const h = history[id] || [];
   const wrap = document.getElementById('modalHistory');
@@ -1170,13 +1249,33 @@ function renderModalHistory(id){
   wrap.innerHTML = h.map((entry, i) => {
     const d = new Date(entry.date);
     const dateStr = d.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'});
-    const summary = entry.sets.map(s => s.weight > 0 ? `${s.weight}kg x ${s.reps}` : `${s.reps}s`).join(', ');
+    const isSided = entry.sets && entry.sets.left && entry.sets.right;
+    let summary;
+    if(isSided){
+      const rTop = entry.sets.right.reduce((a,b)=> b.weight > a.weight ? b : a, entry.sets.right[0]);
+      const lTop = entry.sets.left.reduce((a,b)=> b.weight > a.weight ? b : a, entry.sets.left[0]);
+      const sideText = t => t.weight > 0 ? `${t.weight}kg x ${t.reps}` : `${t.reps}s`;
+      summary = `R ${sideText(rTop)} &middot; L ${sideText(lTop)}`;
+    } else {
+      summary = entry.sets.map(s => s.weight > 0 ? `${s.weight}kg x ${s.reps}` : `${s.reps}s`).join(', ');
+    }
     const feelingDot = ['easy','solid','rough'].includes(entry.feeling) ? `<span class="feeling-dot ${entry.feeling}"></span>` : '';
     const expanded = expandedHistoryRows.has(i);
-    const breakdown = expanded ? `
-      <div class="history-breakdown">
-        ${entry.sets.map((s,si) => `<div class="history-set-row"><span>Set ${si+1}</span><span>${s.weight > 0 ? `${s.weight}kg &times; ${s.reps}` : `${s.reps}s`}</span></div>`).join('')}
-      </div>` : '';
+    let breakdown = '';
+    if(expanded){
+      breakdown = isSided ? `
+        <div class="history-breakdown">
+          <div class="history-side-group">
+            <div class="history-side-label">Right</div>
+            ${setBreakdownHtml(entry.sets.right)}
+          </div>
+          <div class="history-side-group">
+            <div class="history-side-label">Left</div>
+            ${setBreakdownHtml(entry.sets.left)}
+          </div>
+        </div>` : `
+        <div class="history-breakdown">${setBreakdownHtml(entry.sets)}</div>`;
+    }
     return `<div class="history-row">
       <div class="history-delete-bg" onclick="deleteHistoryEntry('${id}', ${i}, true)">Delete</div>
       <div class="history-item${expanded ? ' expanded' : ''}" onclick="toggleHistoryRow(${i})">
