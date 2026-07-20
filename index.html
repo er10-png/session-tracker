@@ -30,11 +30,11 @@
     border-bottom:1px solid var(--card-line);
     display:flex; justify-content:space-between; align-items:flex-start; gap:12px;
   }
-  .header-actions{ display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; flex-shrink:0; margin-top:2px; max-width:130px; }
+  .header-actions{ display:flex; justify-content:flex-end; gap:5px; flex-shrink:0; margin-top:2px; }
   .header-btn{
-    font-size:10.5px; font-weight:700; letter-spacing:0.02em;
+    font-size:10px; font-weight:700; letter-spacing:0.01em;
     color:var(--dim); background:none; border:1px solid var(--card-line);
-    border-radius:20px; padding:6px 10px; white-space:nowrap;
+    border-radius:20px; padding:6px 8px; white-space:nowrap;
   }
   .eyebrow{
     font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
@@ -104,6 +104,7 @@
   #detailView{ display:none; }
   #sessionLogView{ display:none; }
   #calendarView{ display:none; }
+  #dayDetailView{ display:none; }
   .detail-head{
     display:flex; align-items:center; gap:10px;
     padding:18px 16px 12px;
@@ -130,14 +131,6 @@
     border-radius:10px;
     overflow:hidden;
   }
-  .set-row{
-    display:flex; align-items:center; gap:8px;
-    padding:12px 14px;
-    border-bottom:1px solid var(--card-line);
-  }
-  .set-num{ font-size:13px; color:var(--dim); width:16px; }
-  .field-group{ display:flex; flex-direction:column; }
-  .field-label{ font-size:9px; color:var(--dim); text-transform:uppercase; margin-bottom:3px; letter-spacing:0.06em; }
   .unilateral-sets{ display:flex; flex-direction:column; }
   .side-block + .side-block{ border-top:1px solid var(--card-line); }
   .side-label{
@@ -151,32 +144,55 @@
   }
   .history-side-group{ padding:0 0 8px 4px; }
   .history-side-label{ font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; color:var(--dim); padding:8px 0 2px; }
-  .field{
-    display:flex; align-items:center; gap:6px;
-    background:#0f0f11;
-    border-radius:8px;
-    border:1px solid var(--card-line);
-    padding:0 4px;
+
+  .set-row-v2{ border-bottom:1px solid var(--card-line); }
+  .set-row-head{ display:flex; align-items:center; justify-content:space-between; padding:12px 14px 0; }
+  .set-row-head .set-num{ font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; color:var(--dim); }
+  .field-label{ font-size:9.5px; color:var(--dim); text-transform:uppercase; letter-spacing:0.06em; }
+  .value-display{ font-size:24px; font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums; }
+
+  .reps-block{ padding:10px 14px 14px; }
+  .reps-block-top{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px; }
+
+  .reps-slider{
+    -webkit-appearance:none; appearance:none;
+    width:100%; height:16px; border-radius:20px;
+    outline:none; touch-action:manipulation; display:block;
   }
-  .stepper-btn{
+  .reps-slider::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none;
+    width:30px; height:30px; margin-top:-7px;
+    border-radius:50%;
+    background:var(--accent);
+    border:3px solid var(--ink);
+    box-shadow:0 2px 6px rgba(0,0,0,0.45);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .reps-slider:active::-webkit-slider-thumb{
+    transform:scale(1.18);
+    box-shadow:0 0 0 7px rgba(239,75,54,0.22), 0 2px 6px rgba(0,0,0,0.45);
+  }
+
+  .stepper-block{ padding:10px 14px 14px; border-top:1px solid var(--card-line); }
+  .stepper-block.no-border{ border-top:none; }
+  .stepper-control{ display:flex; align-items:center; justify-content:center; gap:20px; margin-top:6px; }
+  .stepper-btn-lg{
     position:relative; flex-shrink:0;
-    width:32px; height:32px;
+    width:36px; height:36px; border-radius:50%;
     display:flex; align-items:center; justify-content:center;
-    background:none; border:none; color:var(--ink); font-size:17px; font-weight:700;
+    background:var(--idle); border:none; color:var(--ink); font-size:19px; font-weight:700;
+    touch-action:manipulation;
+    transition:transform .1s ease, background .1s ease, color .1s ease;
+  }
+  .stepper-btn-lg::before{ content:''; position:absolute; inset:-9px; }
+  .stepper-btn-lg:active{ transform:scale(0.86); background:var(--accent-dim); color:var(--accent); }
+  .stepper-value-input{
+    width:88px; text-align:center; background:none; border:none;
     touch-action:manipulation;
   }
-  .stepper-btn::before{
-    content:'';
-    position:absolute; inset:-6px;
-  }
-  .field input{
-    width:42px; text-align:center; background:none; border:none;
-    color:var(--ink); font-size:16px; font-weight:700;
-    touch-action:manipulation;
-  }
-  .field input::-webkit-outer-spin-button, .field input::-webkit-inner-spin-button{ -webkit-appearance:none; }
-  .reps-slider{ width:100%; margin-top:8px; accent-color:var(--accent); height:20px; }
-  .del-set{ margin-left:auto; color:var(--dim); background:none; border:none; font-size:18px; padding:4px 6px; }
+  .stepper-value-input::-webkit-outer-spin-button, .stepper-value-input::-webkit-inner-spin-button{ -webkit-appearance:none; }
+
+  .del-set{ color:var(--dim); background:none; border:none; font-size:18px; padding:4px 6px; }
   .add-set{ width:100%; padding:12px; background:none; border:none; color:var(--accent); font-size:13px; font-weight:700; }
   .save-btn{
     width:calc(100% - 32px);
@@ -287,6 +303,8 @@
   .calendar-weekdays span{ text-align:center; font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:0.04em; }
   .calendar-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:6px; padding:0 16px; }
   .calendar-day{ aspect-ratio:1; display:flex; align-items:center; justify-content:center; border-radius:8px; font-size:12px; color:var(--dim); background:var(--card); border:1px solid var(--card-line); }
+  .calendar-day.tappable{ cursor:pointer; }
+  .calendar-day.tappable:active{ transform:scale(0.92); }
   .calendar-day.empty{ background:none; border:none; }
   .calendar-day.today{ box-shadow:0 0 0 1.5px var(--ink) inset; }
   .calendar-day.easy{ background:rgba(95,174,124,0.18); color:var(--good); font-weight:700; }
@@ -421,6 +439,18 @@
     <span><i class="calendar-legend-dot solid"></i>Solid</span>
     <span><i class="calendar-legend-dot rough"></i>Rough</span>
   </div>
+</div>
+
+<!-- DAY DETAIL VIEW -->
+<div id="dayDetailView">
+  <div class="detail-head">
+    <button class="back-btn" onclick="closeDayDetail()">&larr;</button>
+    <div class="detail-title">
+      <div class="ex-name" id="dayDetailTitle"></div>
+      <div class="ex-equip">Everything logged that day</div>
+    </div>
+  </div>
+  <div class="list" id="dayDetailList"></div>
 </div>
 
 <!-- MODAL -->
@@ -913,8 +943,13 @@ function renderCalendar(){
     const info = dayFeelings[key];
     let cls = 'calendar-day';
     if(key === todayKey) cls += ' today';
-    if(info) cls += ['easy','solid','rough'].includes(info.feeling) ? ` ${info.feeling}` : ' unrated';
-    cells += `<div class="${cls}">${day}</div>`;
+    if(info){
+      cls += ['easy','solid','rough'].includes(info.feeling) ? ` ${info.feeling}` : ' unrated';
+      cls += ' tappable';
+      cells += `<div class="${cls}" onclick="openDayDetail('${key}')">${day}</div>`;
+    } else {
+      cells += `<div class="${cls}">${day}</div>`;
+    }
   }
   document.getElementById('calendarGrid').innerHTML = cells;
 }
@@ -936,6 +971,44 @@ function openCalendar(){
 function closeCalendar(){
   document.getElementById('calendarView').style.display = 'none';
   document.getElementById('hubView').style.display = 'block';
+}
+
+function renderDayDetail(day){
+  document.getElementById('dayDetailTitle').textContent =
+    day.dateObj.toLocaleDateString(undefined, {weekday:'long', month:'long', day:'numeric'});
+  const wrap = document.getElementById('dayDetailList');
+  wrap.innerHTML = day.exercises.map(e => {
+    const isSided = e.sets && e.sets.left && e.sets.right;
+    const feelingDot = ['easy','solid','rough'].includes(e.feeling) ? `<span class="feeling-dot ${e.feeling}"></span>` : '';
+    const breakdown = isSided ? `
+      <div class="history-side-group">
+        <div class="history-side-label">Right</div>
+        ${setBreakdownHtml(e.sets.right)}
+      </div>
+      <div class="history-side-group">
+        <div class="history-side-label">Left</div>
+        ${setBreakdownHtml(e.sets.left)}
+      </div>` : setBreakdownHtml(e.sets);
+    return `
+      <div class="session-card">
+        <div class="session-date">${e.exerciseName}${feelingDot}</div>
+        <div class="history-breakdown" style="border-bottom:none; padding-bottom:0;">${breakdown}</div>
+      </div>`;
+  }).join('');
+}
+
+function openDayDetail(dateKey){
+  const day = buildSessions().find(s => s.dateKey === dateKey);
+  if(!day) return;
+  renderDayDetail(day);
+  document.getElementById('calendarView').style.display = 'none';
+  document.getElementById('dayDetailView').style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+function closeDayDetail(){
+  document.getElementById('dayDetailView').style.display = 'none';
+  document.getElementById('calendarView').style.display = 'block';
 }
 
 /* ---------- REST TIMER ---------- */
@@ -992,31 +1065,48 @@ function isUnilateral(exerciseId){
   return !!(e && e.unilateral);
 }
 
+function sliderFillStyle(min, max, val){
+  const pct = ((val - min) / (max - min)) * 100;
+  return `background:linear-gradient(to right, var(--accent) 0%, var(--accent) ${pct}%, var(--idle) ${pct}%, var(--idle) 100%);`;
+}
+
+function stepperBlockHtml(i, field, delta, value, label, sideAttr, sideArg, noBorder){
+  return `
+    <div class="stepper-block${noBorder ? ' no-border' : ''}">
+      <span class="field-label">${label}</span>
+      <div class="stepper-control">
+        <button class="stepper-btn-lg" data-i="${i}" data-field="${field}" data-delta="${-delta}"${sideAttr} onclick="adjust(${i},'${field}',${-delta}${sideArg})">&minus;</button>
+        <input type="number" class="value-display stepper-value-input" inputmode="${field==='weight'?'decimal':'numeric'}" value="${value}" onchange="setVal(${i},'${field}',this.value${sideArg})">
+        <button class="stepper-btn-lg" data-i="${i}" data-field="${field}" data-delta="${delta}"${sideAttr} onclick="adjust(${i},'${field}',${delta}${sideArg})">+</button>
+      </div>
+    </div>`;
+}
+
 function setRowHtml(s, i, side, isTimeBased){
   const sideArg = side ? `,'${side}'` : '';
   const sideAttr = side ? ` data-side="${side}"` : '';
-  return `
-    <div class="set-row">
-      <div class="set-num">${i+1}</div>
-      <div class="field-group" data-i="${i}"${sideAttr}>
-        <div class="field-label">${isTimeBased ? 'Seconds' : 'Reps'}</div>
-        <div class="field">
-          <button class="stepper-btn" data-i="${i}" data-field="reps" data-delta="-1"${sideAttr} onclick="adjust(${i},'reps',-1${sideArg})">-</button>
-          <input type="number" class="reps-number" inputmode="numeric" value="${s.reps}" onchange="setVal(${i},'reps',this.value${sideArg})">
-          <button class="stepper-btn" data-i="${i}" data-field="reps" data-delta="1"${sideAttr} onclick="adjust(${i},'reps',1${sideArg})">+</button>
-        </div>
-        ${!isTimeBased ? `<input type="range" class="reps-slider" min="1" max="30" value="${s.reps}" oninput="onRepsSliderInput(this)" onchange="onRepsSliderChange()">` : ''}
+
+  const mainBlock = isTimeBased
+    ? stepperBlockHtml(i, 'reps', 5, s.reps, 'Seconds', sideAttr, sideArg, true)
+    : `
+    <div class="reps-block" data-i="${i}"${sideAttr}>
+      <div class="reps-block-top">
+        <span class="field-label">Reps</span>
+        <span class="value-display reps-value">${s.reps}</span>
       </div>
-      ${!isTimeBased ? `
-      <div class="field-group">
-        <div class="field-label">Weight, kg</div>
-        <div class="field">
-          <button class="stepper-btn" data-i="${i}" data-field="weight" data-delta="-2.5"${sideAttr} onclick="adjust(${i},'weight',-2.5${sideArg})">-</button>
-          <input type="number" inputmode="decimal" value="${s.weight}" onchange="setVal(${i},'weight',this.value${sideArg})">
-          <button class="stepper-btn" data-i="${i}" data-field="weight" data-delta="2.5"${sideAttr} onclick="adjust(${i},'weight',2.5${sideArg})">+</button>
-        </div>
-      </div>` : ''}
-      <button class="del-set" onclick="removeSet(${i})">&times;</button>
+      <input type="range" class="reps-slider" style="${sliderFillStyle(1,30,s.reps)}" min="1" max="30" value="${s.reps}" oninput="onRepsSliderInput(this)" onchange="onRepsSliderChange()">
+    </div>`;
+
+  const weightBlock = !isTimeBased ? stepperBlockHtml(i, 'weight', 2.5, s.weight, 'Weight, kg', sideAttr, sideArg, false) : '';
+
+  return `
+    <div class="set-row-v2">
+      <div class="set-row-head">
+        <span class="set-num">Set ${i+1}</span>
+        <button class="del-set" onclick="removeSet(${i})">&times;</button>
+      </div>
+      ${mainBlock}
+      ${weightBlock}
     </div>
   `;
 }
@@ -1054,13 +1144,14 @@ function setVal(i, field, val, side){
 }
 
 function onRepsSliderInput(rangeEl){
-  const group = rangeEl.closest('.field-group');
+  const group = rangeEl.closest('.reps-block');
   const i = parseInt(group.dataset.i, 10);
   const side = group.dataset.side || undefined;
   const arr = side ? sets[side] : sets;
   arr[i].reps = parseInt(rangeEl.value, 10) || 0;
-  const numberEl = group.querySelector('.reps-number');
-  if(numberEl) numberEl.value = rangeEl.value;
+  const valueEl = group.querySelector('.reps-value');
+  if(valueEl) valueEl.textContent = rangeEl.value;
+  rangeEl.setAttribute('style', sliderFillStyle(parseFloat(rangeEl.min), parseFloat(rangeEl.max), parseFloat(rangeEl.value)));
 }
 
 function onRepsSliderChange(){
@@ -1400,17 +1491,24 @@ function renderMuscleImage(kind){
   const START_INTERVAL = 220;
   const FAST_INTERVAL = 70;
   const SPEED_UP_AFTER = 6;
+  const MAX_FIRES = 20;
+  const BOUNDS_PAD = 14;
+
   let holdTimeout = null;
   let holdInterval = null;
   let holdFired = false;
   let fireCount = 0;
+  let activeBtn = null;
+  let boundsRect = null;
 
-  function fire(btn){
-    const i = parseInt(btn.dataset.i, 10);
-    const field = btn.dataset.field;
-    const delta = parseFloat(btn.dataset.delta);
-    const side = btn.dataset.side || undefined;
+  function fire(){
+    if(!activeBtn || fireCount >= MAX_FIRES){ clearHold(); return; }
+    const i = parseInt(activeBtn.dataset.i, 10);
+    const field = activeBtn.dataset.field;
+    const delta = parseFloat(activeBtn.dataset.delta);
+    const side = activeBtn.dataset.side || undefined;
     adjust(i, field, delta, side);
+    fireCount++;
   }
 
   function clearHold(){
@@ -1419,32 +1517,50 @@ function renderMuscleImage(kind){
     holdTimeout = null;
     holdInterval = null;
     fireCount = 0;
+    activeBtn = null;
+    boundsRect = null;
+  }
+
+  function isPointInBounds(x, y){
+    if(!boundsRect) return false;
+    return x >= boundsRect.left - BOUNDS_PAD && x <= boundsRect.right + BOUNDS_PAD &&
+           y >= boundsRect.top - BOUNDS_PAD && y <= boundsRect.bottom + BOUNDS_PAD;
   }
 
   document.addEventListener('touchstart', (e) => {
-    const btn = e.target.closest('.stepper-btn');
+    const btn = e.target.closest('.stepper-btn-lg');
     if(!btn) return;
     clearHold();
     holdFired = false;
+    activeBtn = btn;
+    boundsRect = btn.getBoundingClientRect();
     holdTimeout = setTimeout(() => {
       holdFired = true;
       fireCount = 0;
       holdInterval = setInterval(() => {
-        fire(btn);
-        fireCount++;
+        fire();
         if(fireCount === SPEED_UP_AFTER){
           clearInterval(holdInterval);
-          holdInterval = setInterval(() => fire(btn), FAST_INTERVAL);
+          holdInterval = setInterval(fire, FAST_INTERVAL);
         }
       }, START_INTERVAL);
     }, HOLD_DELAY);
   }, {passive:true});
 
+  document.addEventListener('touchmove', (e) => {
+    if(!activeBtn) return;
+    const t = e.touches[0];
+    if(!isPointInBounds(t.clientX, t.clientY)) clearHold();
+  }, {passive:true});
+
   document.addEventListener('touchend', clearHold);
   document.addEventListener('touchcancel', clearHold);
+  document.addEventListener('pointerup', clearHold);
+  document.addEventListener('pointerleave', clearHold);
+  document.addEventListener('mouseup', clearHold);
 
   document.addEventListener('click', (e) => {
-    const btn = e.target.closest('.stepper-btn');
+    const btn = e.target.closest('.stepper-btn-lg');
     if(!btn) return;
     if(holdFired){
       e.preventDefault();
