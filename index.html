@@ -30,11 +30,11 @@
     border-bottom:1px solid var(--card-line);
     display:flex; justify-content:space-between; align-items:flex-start; gap:12px;
   }
-  .header-actions{ display:flex; gap:8px; flex-shrink:0; margin-top:2px; }
+  .header-actions{ display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; flex-shrink:0; margin-top:2px; max-width:130px; }
   .header-btn{
-    font-size:11px; font-weight:700; letter-spacing:0.02em;
+    font-size:10.5px; font-weight:700; letter-spacing:0.02em;
     color:var(--dim); background:none; border:1px solid var(--card-line);
-    border-radius:20px; padding:6px 12px; white-space:nowrap;
+    border-radius:20px; padding:6px 10px; white-space:nowrap;
   }
   .eyebrow{
     font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
@@ -103,6 +103,7 @@
   /* detail page */
   #detailView{ display:none; }
   #sessionLogView{ display:none; }
+  #calendarView{ display:none; }
   .detail-head{
     display:flex; align-items:center; gap:10px;
     padding:18px 16px 12px;
@@ -253,6 +254,25 @@
   .session-trend-label{ font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--dim); margin-bottom:8px; }
   .session-trend-svg{ width:100%; height:70px; display:block; }
   .session-bar{ fill:var(--accent-secondary); }
+  .calendar-nav{ display:flex; align-items:center; justify-content:space-between; padding:18px 16px 4px; }
+  .calendar-nav-btn{ width:32px; height:32px; border-radius:50%; border:1px solid var(--card-line); background:none; color:var(--ink); font-size:16px; }
+  .calendar-month-label{ font-size:14px; font-weight:700; }
+  .calendar-weekdays{ display:grid; grid-template-columns:repeat(7,1fr); padding:14px 16px 6px; }
+  .calendar-weekdays span{ text-align:center; font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:0.04em; }
+  .calendar-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:6px; padding:0 16px; }
+  .calendar-day{ aspect-ratio:1; display:flex; align-items:center; justify-content:center; border-radius:8px; font-size:12px; color:var(--dim); background:var(--card); border:1px solid var(--card-line); }
+  .calendar-day.empty{ background:none; border:none; }
+  .calendar-day.today{ box-shadow:0 0 0 1.5px var(--ink) inset; }
+  .calendar-day.easy{ background:rgba(95,174,124,0.18); color:var(--good); font-weight:700; }
+  .calendar-day.solid{ background:var(--idle); color:var(--ink); font-weight:700; }
+  .calendar-day.rough{ background:rgba(239,75,54,0.18); color:var(--accent); font-weight:700; }
+  .calendar-day.unrated{ background:var(--card); color:var(--ink); font-weight:700; }
+  .calendar-legend{ display:flex; justify-content:center; gap:18px; padding:20px 16px 24px; font-size:11px; color:var(--dim); }
+  .calendar-legend span{ display:flex; align-items:center; gap:6px; }
+  .calendar-legend-dot{ display:inline-block; width:8px; height:8px; border-radius:50%; }
+  .calendar-legend-dot.easy{ background:var(--good); }
+  .calendar-legend-dot.solid{ background:var(--dim); }
+  .calendar-legend-dot.rough{ background:var(--accent); }
   .notes-list{ display:flex; flex-direction:column; gap:10px; }
   .note-block{ font-size:12.5px; color:var(--dim); line-height:1.5; }
   .note-block b{ color:var(--ink); display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px; }
@@ -269,9 +289,12 @@
     border-bottom:1px solid var(--card-line); font-size:12.5px; color:var(--dim);
     background:var(--card); position:relative;
   }
+  .history-item.expanded{ border-bottom:none; }
   .history-text{ flex:1; min-width:0; display:flex; justify-content:space-between; gap:8px; }
   .history-item b{ color:var(--ink); }
   .del-history{ flex-shrink:0; color:var(--dim); background:none; border:none; font-size:16px; padding:2px 4px; }
+  .history-breakdown{ background:var(--card); padding:0 0 10px 4px; border-bottom:1px solid var(--card-line); }
+  .history-set-row{ display:flex; justify-content:space-between; font-size:12px; color:var(--dim); padding:4px 0; }
   .empty{ font-size:12.5px; color:var(--dim); text-align:center; padding:14px 0; }
 </style>
 </head>
@@ -285,6 +308,7 @@
       <h1>Session Map</h1>
     </div>
     <div class="header-actions">
+      <button class="header-btn" onclick="openCalendar()">Calendar</button>
       <button class="header-btn" onclick="openSessionLog()">History</button>
       <button class="header-btn" onclick="openBackup()">Backup</button>
     </div>
@@ -346,6 +370,31 @@
   </div>
   <div class="session-trend" id="sessionTrendWrap"></div>
   <div class="list" id="sessionLogList"></div>
+</div>
+
+<!-- CALENDAR VIEW -->
+<div id="calendarView">
+  <div class="detail-head">
+    <button class="back-btn" onclick="closeCalendar()">&larr;</button>
+    <div class="detail-title">
+      <div class="ex-name">Calendar</div>
+      <div class="ex-equip">Colored by how each session felt</div>
+    </div>
+  </div>
+  <div class="calendar-nav">
+    <button class="calendar-nav-btn" onclick="shiftCalendarMonth(-1)">&lsaquo;</button>
+    <div class="calendar-month-label" id="calendarMonthLabel"></div>
+    <button class="calendar-nav-btn" onclick="shiftCalendarMonth(1)">&rsaquo;</button>
+  </div>
+  <div class="calendar-weekdays">
+    <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+  </div>
+  <div class="calendar-grid" id="calendarGrid"></div>
+  <div class="calendar-legend">
+    <span><i class="calendar-legend-dot easy"></i>Easy</span>
+    <span><i class="calendar-legend-dot solid"></i>Solid</span>
+    <span><i class="calendar-legend-dot rough"></i>Rough</span>
+  </div>
 </div>
 
 <!-- MODAL -->
@@ -658,6 +707,7 @@ function openDetail(id){
   document.getElementById('saveConfirm').textContent = '';
   closeFeelingPrompt();
   stopRestTimer();
+  expandedHistoryRows = new Set();
 
   renderSets();
   renderMovement(e.movement);
@@ -775,6 +825,69 @@ function openSessionLog(){
 
 function closeSessionLog(){
   document.getElementById('sessionLogView').style.display = 'none';
+  document.getElementById('hubView').style.display = 'block';
+}
+
+/* ---------- CALENDAR ---------- */
+
+let calendarViewDate = null;
+
+function buildDayFeelings(){
+  const dayFeelings = {};
+  for(const exerciseId in history){
+    history[exerciseId].forEach(entry => {
+      const key = new Date(entry.date).toDateString();
+      const existing = dayFeelings[key];
+      if(!existing || new Date(entry.date) > new Date(existing.date)){
+        dayFeelings[key] = { date: entry.date, feeling: entry.feeling };
+      }
+    });
+  }
+  return dayFeelings;
+}
+
+function renderCalendar(){
+  const dayFeelings = buildDayFeelings();
+  const year = calendarViewDate.getFullYear();
+  const month = calendarViewDate.getMonth();
+  document.getElementById('calendarMonthLabel').textContent =
+    calendarViewDate.toLocaleDateString(undefined, {month:'long', year:'numeric'});
+
+  const startWeekday = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const todayKey = new Date().toDateString();
+
+  let cells = '';
+  for(let i = 0; i < startWeekday; i++){
+    cells += `<div class="calendar-day empty"></div>`;
+  }
+  for(let day = 1; day <= daysInMonth; day++){
+    const key = new Date(year, month, day).toDateString();
+    const info = dayFeelings[key];
+    let cls = 'calendar-day';
+    if(key === todayKey) cls += ' today';
+    if(info) cls += ['easy','solid','rough'].includes(info.feeling) ? ` ${info.feeling}` : ' unrated';
+    cells += `<div class="${cls}">${day}</div>`;
+  }
+  document.getElementById('calendarGrid').innerHTML = cells;
+}
+
+function shiftCalendarMonth(delta){
+  calendarViewDate.setMonth(calendarViewDate.getMonth() + delta);
+  renderCalendar();
+}
+
+function openCalendar(){
+  calendarViewDate = new Date();
+  calendarViewDate.setDate(1);
+  renderCalendar();
+  document.getElementById('hubView').style.display = 'none';
+  document.getElementById('calendarView').style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+function closeCalendar(){
+  document.getElementById('calendarView').style.display = 'none';
   document.getElementById('hubView').style.display = 'block';
 }
 
@@ -1015,7 +1128,10 @@ function renderTrendChart(id){
   const h = history[id] || [];
   const wrap = document.getElementById('trendChartWrap');
   const weighted = h.filter(entry => entry.sets.some(s => s.weight > 0));
-  if(weighted.length < 2){ wrap.innerHTML = ''; return; }
+  if(weighted.length < 2){
+    wrap.innerHTML = '<div class="empty">Log a few more sessions to see your progress here.</div>';
+    return;
+  }
   const points = weighted.slice(0, 12).reverse();
   const weights = points.map(topWeight);
   const max = Math.max(...weights);
@@ -1038,6 +1154,14 @@ function renderTrendChart(id){
   `;
 }
 
+let expandedHistoryRows = new Set();
+
+function toggleHistoryRow(i){
+  if(expandedHistoryRows.has(i)) expandedHistoryRows.delete(i);
+  else expandedHistoryRows.add(i);
+  renderModalHistory(currentExerciseId);
+}
+
 function renderModalHistory(id){
   const h = history[id] || [];
   const wrap = document.getElementById('modalHistory');
@@ -1048,12 +1172,18 @@ function renderModalHistory(id){
     const dateStr = d.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'});
     const summary = entry.sets.map(s => s.weight > 0 ? `${s.weight}kg x ${s.reps}` : `${s.reps}s`).join(', ');
     const feelingDot = ['easy','solid','rough'].includes(entry.feeling) ? `<span class="feeling-dot ${entry.feeling}"></span>` : '';
+    const expanded = expandedHistoryRows.has(i);
+    const breakdown = expanded ? `
+      <div class="history-breakdown">
+        ${entry.sets.map((s,si) => `<div class="history-set-row"><span>Set ${si+1}</span><span>${s.weight > 0 ? `${s.weight}kg &times; ${s.reps}` : `${s.reps}s`}</span></div>`).join('')}
+      </div>` : '';
     return `<div class="history-row">
       <div class="history-delete-bg" onclick="deleteHistoryEntry('${id}', ${i}, true)">Delete</div>
-      <div class="history-item">
+      <div class="history-item${expanded ? ' expanded' : ''}" onclick="toggleHistoryRow(${i})">
         <div class="history-text"><span>${dateStr}${feelingDot}</span><b style="text-align:right; max-width:60%;">${summary}</b></div>
-        <button class="del-history" onclick="deleteHistoryEntry('${id}', ${i})">&times;</button>
+        <button class="del-history" onclick="event.stopPropagation(); deleteHistoryEntry('${id}', ${i})">&times;</button>
       </div>
+      ${breakdown}
     </div>`;
   }).join('');
   wrap.querySelectorAll('.history-row').forEach(row => attachSwipeToDelete(row));
