@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
 <title>TrainMore Tracker</title>
 <style>
   html, body { height: 100%; margin: 0; background: #131316; }
@@ -152,17 +152,30 @@
   .history-side-group{ padding:0 0 8px 4px; }
   .history-side-label{ font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; color:var(--dim); padding:8px 0 2px; }
   .field{
-    display:flex; align-items:center;
+    display:flex; align-items:center; gap:6px;
     background:#0f0f11;
-    border-radius:6px;
+    border-radius:8px;
     border:1px solid var(--card-line);
+    padding:0 4px;
   }
-  .stepper-btn{ width:30px; height:30px; background:none; border:none; color:var(--ink); font-size:17px; font-weight:700; }
+  .stepper-btn{
+    position:relative; flex-shrink:0;
+    width:32px; height:32px;
+    display:flex; align-items:center; justify-content:center;
+    background:none; border:none; color:var(--ink); font-size:17px; font-weight:700;
+    touch-action:manipulation;
+  }
+  .stepper-btn::before{
+    content:'';
+    position:absolute; inset:-6px;
+  }
   .field input{
-    width:44px; text-align:center; background:none; border:none;
-    color:var(--ink); font-size:14.5px; font-weight:700;
+    width:42px; text-align:center; background:none; border:none;
+    color:var(--ink); font-size:16px; font-weight:700;
+    touch-action:manipulation;
   }
   .field input::-webkit-outer-spin-button, .field input::-webkit-inner-spin-button{ -webkit-appearance:none; }
+  .reps-slider{ width:100%; margin-top:8px; accent-color:var(--accent); height:20px; }
   .del-set{ margin-left:auto; color:var(--dim); background:none; border:none; font-size:18px; padding:4px 6px; }
   .add-set{ width:100%; padding:12px; background:none; border:none; color:var(--accent); font-size:13px; font-weight:700; }
   .save-btn{
@@ -981,24 +994,26 @@ function isUnilateral(exerciseId){
 
 function setRowHtml(s, i, side, isTimeBased){
   const sideArg = side ? `,'${side}'` : '';
+  const sideAttr = side ? ` data-side="${side}"` : '';
   return `
     <div class="set-row">
       <div class="set-num">${i+1}</div>
-      <div class="field-group">
+      <div class="field-group" data-i="${i}"${sideAttr}>
         <div class="field-label">${isTimeBased ? 'Seconds' : 'Reps'}</div>
         <div class="field">
-          <button class="stepper-btn" onclick="adjust(${i},'reps',-1${sideArg})">-</button>
-          <input type="number" inputmode="numeric" value="${s.reps}" onchange="setVal(${i},'reps',this.value${sideArg})">
-          <button class="stepper-btn" onclick="adjust(${i},'reps',1${sideArg})">+</button>
+          <button class="stepper-btn" data-i="${i}" data-field="reps" data-delta="-1"${sideAttr} onclick="adjust(${i},'reps',-1${sideArg})">-</button>
+          <input type="number" class="reps-number" inputmode="numeric" value="${s.reps}" onchange="setVal(${i},'reps',this.value${sideArg})">
+          <button class="stepper-btn" data-i="${i}" data-field="reps" data-delta="1"${sideAttr} onclick="adjust(${i},'reps',1${sideArg})">+</button>
         </div>
+        ${!isTimeBased ? `<input type="range" class="reps-slider" min="1" max="30" value="${s.reps}" oninput="onRepsSliderInput(this)" onchange="onRepsSliderChange()">` : ''}
       </div>
       ${!isTimeBased ? `
       <div class="field-group">
         <div class="field-label">Weight, kg</div>
         <div class="field">
-          <button class="stepper-btn" onclick="adjust(${i},'weight',-2.5${sideArg})">-</button>
+          <button class="stepper-btn" data-i="${i}" data-field="weight" data-delta="-2.5"${sideAttr} onclick="adjust(${i},'weight',-2.5${sideArg})">-</button>
           <input type="number" inputmode="decimal" value="${s.weight}" onchange="setVal(${i},'weight',this.value${sideArg})">
-          <button class="stepper-btn" onclick="adjust(${i},'weight',2.5${sideArg})">+</button>
+          <button class="stepper-btn" data-i="${i}" data-field="weight" data-delta="2.5"${sideAttr} onclick="adjust(${i},'weight',2.5${sideArg})">+</button>
         </div>
       </div>` : ''}
       <button class="del-set" onclick="removeSet(${i})">&times;</button>
@@ -1035,6 +1050,20 @@ function adjust(i, field, delta, side){
 function setVal(i, field, val, side){
   const arr = side ? sets[side] : sets;
   arr[i][field] = parseFloat(val) || 0;
+  renderSets();
+}
+
+function onRepsSliderInput(rangeEl){
+  const group = rangeEl.closest('.field-group');
+  const i = parseInt(group.dataset.i, 10);
+  const side = group.dataset.side || undefined;
+  const arr = side ? sets[side] : sets;
+  arr[i].reps = parseInt(rangeEl.value, 10) || 0;
+  const numberEl = group.querySelector('.reps-number');
+  if(numberEl) numberEl.value = rangeEl.value;
+}
+
+function onRepsSliderChange(){
   renderSets();
 }
 function addSet(){
@@ -1363,6 +1392,67 @@ function renderMuscleImage(kind){
 }
 
 /* ---------- INIT ---------- */
+
+/* ---------- STEPPER PRESS-AND-HOLD ---------- */
+
+(function setupStepperHold(){
+  const HOLD_DELAY = 400;
+  const START_INTERVAL = 220;
+  const FAST_INTERVAL = 70;
+  const SPEED_UP_AFTER = 6;
+  let holdTimeout = null;
+  let holdInterval = null;
+  let holdFired = false;
+  let fireCount = 0;
+
+  function fire(btn){
+    const i = parseInt(btn.dataset.i, 10);
+    const field = btn.dataset.field;
+    const delta = parseFloat(btn.dataset.delta);
+    const side = btn.dataset.side || undefined;
+    adjust(i, field, delta, side);
+  }
+
+  function clearHold(){
+    clearTimeout(holdTimeout);
+    clearInterval(holdInterval);
+    holdTimeout = null;
+    holdInterval = null;
+    fireCount = 0;
+  }
+
+  document.addEventListener('touchstart', (e) => {
+    const btn = e.target.closest('.stepper-btn');
+    if(!btn) return;
+    clearHold();
+    holdFired = false;
+    holdTimeout = setTimeout(() => {
+      holdFired = true;
+      fireCount = 0;
+      holdInterval = setInterval(() => {
+        fire(btn);
+        fireCount++;
+        if(fireCount === SPEED_UP_AFTER){
+          clearInterval(holdInterval);
+          holdInterval = setInterval(() => fire(btn), FAST_INTERVAL);
+        }
+      }, START_INTERVAL);
+    }, HOLD_DELAY);
+  }, {passive:true});
+
+  document.addEventListener('touchend', clearHold);
+  document.addEventListener('touchcancel', clearHold);
+
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.stepper-btn');
+    if(!btn) return;
+    if(holdFired){
+      e.preventDefault();
+      e.stopPropagation();
+      holdFired = false;
+    }
+  }, true);
+})();
 
 (async function init(){
   await loadHistory();
