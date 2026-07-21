@@ -133,15 +133,25 @@
   }
   .unilateral-sets{ display:flex; flex-direction:column; }
   .side-block + .side-block{ border-top:1px solid var(--card-line); }
+  .side-header{ padding:10px 14px 8px; background:#161619; }
   .side-label{
-    display:flex; align-items:center; gap:8px; padding:10px 14px;
+    display:flex; align-items:center; gap:8px;
     font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink);
-    background:#161619;
+    margin-bottom:6px;
   }
   .side-tag{
     font-size:9.5px; font-weight:700; text-transform:none; letter-spacing:0.02em;
     color:var(--accent); background:var(--accent-dim); padding:2px 8px; border-radius:20px;
   }
+  .side-apply-row{ display:flex; gap:6px; }
+  .sets-toolbar{ padding:10px 14px 0; display:flex; justify-content:flex-end; }
+  .apply-btn{
+    font-size:10px; font-weight:700; letter-spacing:0.02em;
+    color:var(--accent); background:var(--accent-dim); border:none;
+    border-radius:20px; padding:5px 10px; white-space:nowrap;
+    touch-action:manipulation;
+  }
+  .apply-btn:active{ transform:scale(0.94); }
   .history-side-group{ padding:0 0 8px 4px; }
   .history-side-label{ font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; color:var(--dim); padding:8px 0 2px; }
 
@@ -1118,20 +1128,56 @@ function renderSets(){
   const unilateral = isUnilateral(currentExerciseId);
 
   if(unilateral){
-    const sideBlock = (side, label, tag) => `
+    const count = sets[WEAK_SIDE].length;
+    const sideBlock = (side, label, tag, isWeak) => {
+      const applyRow = count >= 2 ? `
+        <div class="side-apply-row">
+          <button class="apply-btn" onclick="applyFirstSetToAll('${side}')">This side</button>
+          ${isWeak ? `<button class="apply-btn" onclick="applyFirstSetToBothSides()">Both sides</button>` : ''}
+        </div>` : '';
+      return `
       <div class="side-block">
-        <div class="side-label">${label}${tag ? `<span class="side-tag">${tag}</span>` : ''}</div>
+        <div class="side-header">
+          <div class="side-label">${label}${tag ? `<span class="side-tag">${tag}</span>` : ''}</div>
+          ${applyRow}
+        </div>
         ${sets[side].map((s,i) => setRowHtml(s, i, side, false)).join('')}
       </div>`;
+    };
     list.innerHTML = `
       <div class="unilateral-sets">
-        ${sideBlock(WEAK_SIDE, WEAK_SIDE === 'right' ? 'Right' : 'Left', 'Weak side, go first')}
-        ${sideBlock(STRONG_SIDE, STRONG_SIDE === 'right' ? 'Right' : 'Left', '')}
+        ${sideBlock(WEAK_SIDE, WEAK_SIDE === 'right' ? 'Right' : 'Left', 'Weak side, go first', true)}
+        ${sideBlock(STRONG_SIDE, STRONG_SIDE === 'right' ? 'Right' : 'Left', '', false)}
       </div>`;
   } else {
     const isTimeBased = sets.every(s => s.weight === 0) && currentExerciseId === 'plank';
-    list.innerHTML = sets.map((s,i) => setRowHtml(s, i, null, isTimeBased)).join('');
+    const toolbar = sets.length >= 2 ? `
+      <div class="sets-toolbar">
+        <button class="apply-btn" onclick="applyFirstSetToAll()">Apply to all sets</button>
+      </div>` : '';
+    list.innerHTML = toolbar + sets.map((s,i) => setRowHtml(s, i, null, isTimeBased)).join('');
   }
+}
+
+function applyFirstSetToAll(side){
+  const arr = side ? sets[side] : sets;
+  const first = arr[0];
+  for(let i = 1; i < arr.length; i++){
+    arr[i].reps = first.reps;
+    arr[i].weight = first.weight;
+  }
+  renderSets();
+}
+
+function applyFirstSetToBothSides(){
+  const source = sets[WEAK_SIDE][0];
+  ['left','right'].forEach(side => {
+    sets[side].forEach(s => {
+      s.reps = source.reps;
+      s.weight = source.weight;
+    });
+  });
+  renderSets();
 }
 
 function adjust(i, field, delta, side){
