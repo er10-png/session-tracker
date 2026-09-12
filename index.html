@@ -75,6 +75,8 @@
     border:1px solid var(--card-line);
     border-radius:10px;
     padding:10px 12px;
+    touch-action:manipulation;
+    -webkit-touch-callout:none; -webkit-user-select:none; user-select:none;
   }
   .thumb{
     width:52px; height:52px;
@@ -83,7 +85,7 @@
     display:flex; align-items:center; justify-content:center;
     flex-shrink:0;
   }
-  .thumb img{ width:44px; height:44px; object-fit:contain; }
+  .thumb img{ width:44px; height:44px; object-fit:contain; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }
   .ex-info{ flex:1; min-width:0; }
   .ex-name{ font-size:14.5px; font-weight:700; }
   .ex-equip{ font-size:11px; color:var(--dim); margin-top:1px; }
