@@ -352,6 +352,31 @@
   .history-breakdown{ background:var(--card); padding:0 0 10px 4px; border-bottom:1px solid var(--card-line); }
   .history-set-row{ display:flex; justify-content:space-between; font-size:12px; color:var(--dim); padding:4px 0; }
   .empty{ font-size:12.5px; color:var(--dim); text-align:center; padding:14px 0; }
+
+  /* variant selectors (pulley height, bench angle/mode) */
+  .variant-row{ margin:14px 16px 0; display:flex; flex-direction:column; gap:10px; }
+  .variant-group{ background:var(--card); border:1px solid var(--card-line); border-radius:10px; padding:10px 12px; }
+  .variant-group .field-label{ display:block; margin-bottom:8px; }
+  .variant-btns{ display:flex; gap:6px; }
+  .variant-btn{ flex:1; padding:9px 0; border-radius:8px; border:1px solid var(--card-line); background:none; color:var(--dim); font-size:12.5px; font-weight:700; touch-action:manipulation; }
+  .variant-btn.active{ background:var(--accent-dim); color:var(--accent); border-color:transparent; }
+
+  /* All tab: search + list/diagram sub-toggle */
+  .subtab-row{ display:flex; margin:14px 16px 0; background:var(--card); border:1px solid var(--card-line); border-radius:10px; overflow:hidden; }
+  .subtab-btn{ flex:1; min-height:40px; padding:10px 0; text-align:center; font-size:13px; font-weight:700; color:var(--dim); background:none; border:none; }
+  .subtab-btn.active{ background:var(--accent-dim); color:var(--accent); }
+  .all-search-row{ margin:14px 16px 0; }
+  .search-input{ width:100%; padding:11px 14px; background:var(--card); border:1px solid var(--card-line); border-radius:8px; color:var(--ink); font-size:14px; }
+  .search-input::placeholder{ color:var(--dim); }
+
+  /* interactive / highlighted body diagram, shared by the All tab and per-exercise muscle groups panel */
+  .body-diagram-row{ display:flex; gap:10px; margin:14px 16px 0; }
+  .body-diagram-svg{ width:100%; height:auto; display:block; }
+  .body-diagram-labels{ display:flex; justify-content:space-around; font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:0.06em; padding:6px 16px 0; }
+  .body-region{ cursor:pointer; transition:fill .15s ease; }
+  .exec-icon-wrap{ display:flex; align-items:center; justify-content:center; padding:34px 0; }
+  .exec-icon-wrap svg{ color:var(--ink); }
+  .thumb svg{ color:var(--dim); }
 </style>
 </head>
 <body>
@@ -373,12 +398,34 @@
     <button class="day-btn active" data-day="A" onclick="setDay('A')">Full Body A</button>
     <button class="day-btn" data-day="B" onclick="setDay('B')">Full Body B</button>
     <button class="day-btn" data-day="optional" onclick="setDay('optional')">Optional</button>
+    <button class="day-btn" data-day="all" onclick="setDay('all')">All</button>
   </div>
   <div class="section-head" id="hubSectionHead" style="display:none;">
     <h2>Optional add-ins</h2>
     <p>Not tied to a day, drop these into either session when you have the time.</p>
   </div>
   <div class="list" id="exerciseList"></div>
+
+  <div id="allTabWrap" style="display:none;">
+    <div class="subtab-row">
+      <button class="subtab-btn active" data-subview="list" onclick="setAllSubView('list')">List</button>
+      <button class="subtab-btn" data-subview="diagram" onclick="setAllSubView('diagram')">Diagram</button>
+    </div>
+    <div id="allListView">
+      <div class="all-search-row">
+        <input type="text" class="search-input" id="allSearchInput" placeholder="Search exercises by name" oninput="onAllSearchInput(this.value)">
+      </div>
+      <div class="list" id="allListResults"></div>
+    </div>
+    <div id="allDiagramView" style="display:none;">
+      <div class="body-diagram-row">
+        <div class="exec-panel" id="bodyFrontPanel"></div>
+        <div class="exec-panel" id="bodyBackPanel"></div>
+      </div>
+      <div class="body-diagram-labels"><span>Front</span><span>Back</span></div>
+      <div id="allDiagramResults"></div>
+    </div>
+  </div>
 </div>
 
 <!-- DETAIL VIEW -->
@@ -391,6 +438,8 @@
     </div>
     <button class="info-btn" onclick="openModal()">i</button>
   </div>
+
+  <div class="variant-row" id="variantRow" style="display:none;"></div>
 
   <div class="sets-card">
     <div id="setsList"></div>
@@ -564,125 +613,247 @@ const WEAK_SIDE = 'right';
 const STRONG_SIDE = 'left';
 
 const EXERCISES = [
-  { id:'chestPress', day:'A', name:'Chest Press', equip:'Smith machine or flat bench and barbell',
-    cue:"Press straight up, don't flare elbows past 75 degrees. Full stretch at the bottom.",
+  { id:'chestPress', day:'A', name:'Bench Press (Barbell)', equip:'Flat, incline, or decline bench with a barbell or paired dumbbells, single dumbbell for the unilateral version',
+    variants:[
+      {key:'angle', label:'Angle', options:[{value:'flat',label:'Flat'},{value:'incline',label:'Incline'},{value:'decline',label:'Decline'}], default:'flat'},
+      {key:'mode', label:'Mode', options:[{value:'bilateral',label:'Bilateral'},{value:'unilateral',label:'Unilateral'}], default:'bilateral'}
+    ],
+    modeKey:'mode',
+    cue: function(v){
+      const angle = (v && v.angle) || 'flat';
+      const mode = (v && v.mode) || 'bilateral';
+      let cue = "Press straight up, don't flare elbows past 75 degrees. Full stretch at the bottom.";
+      if(angle === 'incline') cue += " Incline shifts the emphasis toward your upper chest.";
+      else if(angle === 'decline') cue += " Decline shifts the emphasis toward your lower chest.";
+      if(mode === 'unilateral') cue += " One arm at a time with a single dumbbell, brace your core hard, the offset load will try to twist your torso, don't let it. Right arm first, since your left is the stronger side.";
+      return cue;
+    },
     muscles:{primary:['chest'], secondary:['frontDelt','triceps']},
-    notes:{mistakes:["Elbows drifting above shoulder height shifts the work onto the front of your shoulder instead of your chest","Locking your elbows fully at the top dumps tension off the chest right when it should peak","Lower back arching off the pad to grind out a rep means the weight is too heavy for now"], angles:["Flat or neutral emphasizes the middle of your chest, this is your default","An incline around 30 degrees shifts emphasis to the upper chest. Steeper than that starts working the front delt more than the chest","Handles should line up with mid-chest when seated normally, not up near your collarbone"]},
-    movement:'chestPress', defaultSets:[{reps:10,weight:20},{reps:10,weight:20},{reps:10,weight:20},{reps:10,weight:20}] },
+    notes:{mistakes:["Bouncing the bar off your chest instead of a controlled touch and press, this isn't just sloppy, it removes tension at the exact point your chest should be working hardest","Flaring elbows to a full 90 degrees from your torso, keep them closer to 45 to 75 degrees, full flare stresses the front of the shoulder joint directly","Lifting your hips off the bench to help drive the weight up, a sign the weight is beyond your controlled strength right now","Gripping too wide, which shortens your range of motion and can shift stress toward the shoulder rather than the chest"], angles:["Flat targets the middle of the chest and is the default for raw pressing strength","Incline, around 30 degrees, recruits the upper chest fibers near the collarbone more effectively, steeper than that and the front delt starts taking over","Decline shifts emphasis toward the lower chest","Since your goal is overall upper body fullness rather than one region, rotating which angle you use across weeks, rather than living on flat only, builds more complete chest development over time"]},
+    image:'bench-press', movement:'chestPress', defaultSets:[{reps:10,weight:20},{reps:10,weight:20},{reps:10,weight:20},{reps:10,weight:20}] },
 
   { id:'assistedPullUp', day:'A', name:'Assisted Pull-Up', equip:'Assisted pull-up and dip machine',
     cue:"Set assistance so the last 2 reps feel hard, not impossible. Pull your chest to the bar, lead with the elbows down and back.",
     muscles:{primary:['lats'], secondary:['upperBack','biceps','rearDelt']},
     notes:{mistakes:["Shrugging your shoulders up toward your ears takes tension off your lats and puts it on your traps","Using momentum or bouncing at the bottom instead of a controlled dead hang start","Grip too wide feels stronger but shortens your range of motion, closer to shoulder width usually works better"], angles:["More assistance weight on the stack means less of your bodyweight you're lifting, this machine's numbers work in reverse from most others","If your gym's machine has a chin-up handle option (palms facing you), that shifts more work onto biceps, useful for variety later"]},
-    movement:'assistedPullUp', defaultSets:[{reps:8,weight:20},{reps:8,weight:20},{reps:8,weight:20}] },
+    image:'assisted-pullup', movement:'assistedPullUp', defaultSets:[{reps:8,weight:20},{reps:8,weight:20},{reps:8,weight:20}] },
 
-  { id:'singleArmRow', day:'A', name:'Single-Arm Cable Row', equip:'Cable crossover station, low pulley', unilateral:true,
-    cue:"Pull elbow past your ribcage, squeeze the shoulder blade. Right arm does its full set before the left starts, since your left is the stronger side.",
+  { id:'singleArmRow', day:'A', name:'Standing Cable Row', equip:'Cable crossover station, adjustable pulley', unilateral:true,
+    variants:[{key:'height', label:'Pulley height', options:[{value:'low',label:'Low'},{value:'mid',label:'Mid'},{value:'high',label:'High'}], default:'low'}],
+    cue: function(v){
+      const height = (v && v.height) || 'low';
+      const base = "Pull elbow past your ribcage, squeeze the shoulder blade. Right arm does its full set before the left starts, since your left is the stronger side.";
+      const clause = height === 'low' ? " Pulley set low leans a bit more on your lats."
+        : height === 'high' ? " Pulley set high shifts a bit more onto your upper back."
+        : " Pulley set at mid height keeps the pull balanced between lats and upper back.";
+      return base + clause;
+    },
     muscles:{primary:['lats','upperBack'], secondary:['biceps']},
-    notes:{mistakes:["Rotating your torso to help pull the weight, the power should come from your back, not a twist","Shrugging the shoulder up instead of driving the elbow back and down","Leaning too far back at the finish, a slight lean is fine but this shouldn't turn into a full-body swing"], angles:["Low pulley pulls at a slight upward angle into your torso, good general setup for lats","A slightly higher pulley setting shifts emphasis a bit more toward the upper back and rear delt"]},
-    movement:'row', defaultSets:[{reps:11,weight:15},{reps:11,weight:15},{reps:11,weight:15},{reps:11,weight:15}] },
+    notes:{mistakes:["Rotating your torso to help pull the weight, the pulling power should come from your back, not a body twist","Shrugging the shoulder up instead of driving the elbow back and down","Leaning too far back at the finish, a slight lean is fine, but this shouldn't become a full-body swing that turns a row into a deadlift-adjacent movement"], angles:["Low pulley pulls at a slight upward angle into your torso and leans more toward the lats","Mid pulley, straight across, gives a more balanced hit across the whole upper back","High pulley leans the emphasis toward the upper back and rear delt, closer in feel to a Face Pull but still fundamentally a row rather than that movement's external rotation cue, worth rotating through all three across sessions rather than settling on one permanently"]},
+    image:'standing-single-arm-cable-row', movement:'row', defaultSets:[{reps:11,weight:15},{reps:11,weight:15},{reps:11,weight:15},{reps:11,weight:15}] },
 
   { id:'shoulderPress', day:'A', name:'Single-Arm Shoulder Press', equip:'Dumbbell, seated on adjustable bench', unilateral:true,
     cue:"Press straight overhead, don't let your torso lean to help. If it leans, the weight is too heavy. Right arm first, since your left is the stronger side.",
     muscles:{primary:['frontDelt'], secondary:['triceps']},
     notes:{mistakes:["Torso leaning to help push the weight up, if it leans, the weight is too heavy, not a stronger rep","Pressing the dumbbell forward instead of straight up puts extra stress on the shoulder joint","Not locking out fully at the top loses part of the range you're paying for"], angles:["Bench upright at 90 degrees is standard for this. Reclining it slightly shifts more work onto the upper chest and away from the shoulder, not what you want here"]},
-    movement:'shoulderPress', defaultSets:[{reps:11,weight:10},{reps:11,weight:10},{reps:11,weight:10}] },
+    image:'seated-single-arm-shoulder-press', movement:'shoulderPress', defaultSets:[{reps:11,weight:10},{reps:11,weight:10},{reps:11,weight:10}] },
 
   { id:'legPress', day:'A', name:'Leg Press', equip:'Leg press machine',
     cue:"Kept light on purpose, skating already loads your legs. This is maintenance, not a max effort lift.",
     muscles:{primary:['quads'], secondary:['glutes','hamstrings']},
     notes:{mistakes:["Lower back rounding off the pad at the bottom, a sign you've gone deeper than your hips can control safely","Locking your knees out fully at the top puts the stress on the joint instead of the muscle","Feet too low on the platform overloads the knees, too high overloads the lower back"], angles:["Feet placed higher and wider on the platform shifts more work to glutes and hamstrings","Feet placed lower and closer together shifts more work to the quads, which is the setup you want given your goal here"]},
-    movement:'legPress', defaultSets:[{reps:13,weight:60},{reps:13,weight:60}] },
+    image:'leg-press', movement:'legPress', defaultSets:[{reps:13,weight:60},{reps:13,weight:60}] },
 
   { id:'standingCablePress', day:'A', name:'Standing Single-Arm Cable Press', equip:'Cable tower, chest-height pulley, single handle, standing', unilateral:true,
     cue:"Stand side-on to the tower, press the handle straight out from your chest without letting your torso rotate. Right arm first, since your left is the stronger side.",
     muscles:{primary:['chest'], secondary:['frontDelt','triceps','abs']},
     notes:{mistakes:["Rotating your torso to help finish the press, the resistance should be fought with your core staying square, not a twist","Letting the shoulder round forward at the start instead of keeping it set back and down","Standing too close to the tower means not enough tension at the start of the press"], angles:["Pulley at chest height keeps the pressing line matching a standard chest press","Standing further from the tower increases the anti-rotation demand on your core, useful once the base movement feels easy"]},
-    movement:'standingCablePress', defaultSets:[{reps:12,weight:7.5},{reps:12,weight:7.5},{reps:12,weight:7.5}] },
+    image:'standing-single-arm-cable-press', movement:'standingCablePress', defaultSets:[{reps:12,weight:7.5},{reps:12,weight:7.5},{reps:12,weight:7.5}] },
 
   { id:'assistedDip', day:'B', name:'Assisted Dip', equip:'Assisted pull-up and dip machine',
     cue:"Lean forward slightly to bias chest over triceps. Lower until your shoulders dip below your elbows, press back up.",
     muscles:{primary:['chest','triceps'], secondary:['frontDelt']},
     notes:{mistakes:["Staying too upright shifts the work almost entirely onto triceps, missing the chest emphasis you want","Lowering too fast or too deep can strain the front of the shoulder, control the descent","Flaring elbows out wide instead of keeping them tucked toward your body puts more stress on the shoulder joint"], angles:["Leaning your torso forward biases chest over triceps, which is what you're after here","Staying upright with elbows tucked close shifts the same movement toward triceps instead, useful to know if you ever want a triceps-focused variation"]},
-    movement:'dip', defaultSets:[{reps:9,weight:25},{reps:9,weight:25},{reps:9,weight:25}] },
+    image:'assisted-dip', movement:'dip', defaultSets:[{reps:9,weight:25},{reps:9,weight:25},{reps:9,weight:25}] },
 
   { id:'pecFly', day:'A', name:'Pec Fly', equip:'Pec deck machine',
     cue:"Slight bend in elbow throughout, think about hugging a tree. Slow on the way back.",
     muscles:{primary:['chest'], secondary:['frontDelt']},
     notes:{mistakes:["This is the most common failure point on this machine, if you only feel your shoulders, it's almost always the seat height, not something you're doing wrong technique-wise","Letting your elbows travel behind your torso at the bottom overstretches the front of the shoulder joint","Using momentum to slam the pads together instead of a slow, controlled squeeze"], angles:["The parallel rule: seated normally with handles gripped, your upper arms should be parallel to the floor, elbows roughly level with your shoulders, not above or below","If elbows sit above your shoulders the seat is too low, if they sit below it's too high, this machine has one correct position rather than several angle options"]},
-    movement:'pecFly', defaultSets:[{reps:13,weight:15},{reps:13,weight:15},{reps:13,weight:15}] },
+    image:'pecfly-machine', movement:'pecFly', defaultSets:[{reps:13,weight:15},{reps:13,weight:15},{reps:13,weight:15}] },
 
   { id:'cableCrossover', day:'B', name:'Single-Arm Cable Crossover', equip:'Cable tower, high pulley, single handle', unilateral:true,
     cue:"Pulley set high. Twist slightly away from the machine, then punch the handle diagonally across your body toward your opposite hip, slight bend in the elbow, squeeze your chest hard at the bottom. Right arm goes first, since your left is the stronger side.",
     muscles:{primary:['chest'], secondary:['frontDelt']},
     notes:{mistakes:["Losing the slight elbow bend and turning it into a straight-arm swing shifts stress onto the elbow joint instead of the chest","Rotating your torso too far, the power comes from the chest squeezing, not from spinning your hips","Standing too close to the machine means not enough tension at the starting stretch"], angles:["Pulley high, pulling down and across to your opposite hip (your current setup) emphasizes the lower chest","Pulley low, pulling up and across toward the opposite shoulder emphasizes the upper chest instead","Pulley at shoulder height, pulling straight across, hits the middle of the chest, the most neutral version. Worth alternating pulley height by session for more complete development over time"]},
-    movement:'cableCrossover', defaultSets:[{reps:12,weight:7.5},{reps:12,weight:7.5},{reps:12,weight:7.5}] },
+    image:'standing-single-arm-cable-crossover', movement:'cableCrossover', defaultSets:[{reps:12,weight:7.5},{reps:12,weight:7.5},{reps:12,weight:7.5}] },
 
   { id:'latPulldown', day:'B', name:'Lat Pulldown', equip:'Cable tower, wide bar attachment, seated',
     cue:"Pull the bar to your upper chest, elbows driving down and slightly back. Chest stays up, don't lean back to muscle it down.",
     muscles:{primary:['lats'], secondary:['upperBack','biceps']},
     notes:{mistakes:["Leaning back and using body momentum to muscle the bar down instead of pulling with your back","Pulling the bar behind your neck instead of to your upper chest, this puts unnecessary strain on the shoulder","Grip too narrow shifts more work onto biceps and away from lats"], angles:["Wide overhand grip biases the lats through a broad range","A narrower or reverse grip shifts more emphasis onto the lower lats and biceps, a useful variation later on"]},
-    movement:'latPulldown', defaultSets:[{reps:11,weight:35},{reps:11,weight:35},{reps:11,weight:35}] },
+    image:'seated-lat-pulldown', movement:'latPulldown', defaultSets:[{reps:11,weight:35},{reps:11,weight:35},{reps:11,weight:35}] },
 
   { id:'facePull', day:'B', name:'Face Pull', equip:'Cable crossover, rope attachment, chest height',
     cue:"Pull the rope to your forehead, elbows finish high and wide. Good counterbalance to a chest heavy session.",
     muscles:{primary:['rearDelt','upperBack'], secondary:[]},
     notes:{mistakes:["Pulling with the arms alone instead of driving the elbows back and high, this should feel like squeezing your shoulder blades together","Letting the elbows drop below shoulder height turns this into more of a row than a face pull","Using too much weight, which forces you to lean back and lose the posture-correcting purpose of the exercise"], angles:["Pulley set at roughly eye or forehead height keeps the pulling angle correct for rear delts and upper back"]},
-    movement:'facePull', defaultSets:[{reps:15,weight:10},{reps:15,weight:10}] },
+    image:'standing-facepull', movement:'facePull', defaultSets:[{reps:15,weight:10},{reps:15,weight:10}] },
 
   { id:'bulgarianSplitSquat', day:'B', name:'Bulgarian Split Squat', equip:'Flat bench, pair of dumbbells', unilateral:true,
     cue:"Rear foot laces down on the bench, front knee tracks over the toes. Skating already asks a lot of one stance, this evens it out. Right leg goes first, since your left is the stronger side.",
     muscles:{primary:['quads','glutes'], secondary:['hamstrings']},
     notes:{mistakes:["Front knee caving inward instead of tracking over your toes, a common early wobble as you learn the balance","Rear foot too close to the front foot cramps your range, give yourself a longer stride than feels natural at first","Leaning too far forward shifts the work toward the knee instead of the glute"], angles:["A more upright torso emphasizes the quad more","Leaning the torso forward slightly shifts more emphasis onto the glute, worth trying both once the balance feels solid"]},
-    movement:'splitSquat', defaultSets:[{reps:9,weight:10},{reps:9,weight:10},{reps:9,weight:10}] },
+    image:'bulgarian-split-squats', movement:'splitSquat', defaultSets:[{reps:9,weight:10},{reps:9,weight:10},{reps:9,weight:10}] },
 
   { id:'pallofPress', day:'B', name:'Pallof Press', equip:'Cable tower, low or mid pulley, standing in place',
     cue:"Stand side on to the anchor, press the handle straight out and hold. Resist the pull trying to rotate you, don't let your torso twist.",
     muscles:{primary:['abs'], secondary:['frontDelt']},
     notes:{mistakes:["Hips or shoulders rotating toward the cable, the entire point is that nothing moves except your arms","Holding your breath through the hold instead of breathing steadily while staying braced","Standing too close to the anchor, not enough distance means not enough resistance to actually challenge the anti-rotation"], angles:["Pulley at chest height is standard and keeps the resisting force in a straight line through your core"]},
-    movement:'pallof', defaultSets:[{reps:12,weight:10},{reps:12,weight:10}] },
+    image:'pallof-press', movement:'pallof', defaultSets:[{reps:12,weight:10},{reps:12,weight:10}] },
 
   { id:'plank', day:'B', name:'Plank, Alternating with Side Plank', equip:'Floor mat',
     cue:"Straight line from shoulders to heels, no sagging hips. Alternate a front plank with a side plank on each side.",
     muscles:{primary:['abs'], secondary:[]},
     notes:{mistakes:["Hips sagging toward the floor as fatigue sets in, this is usually the first sign it's time to stop the set","Hips piked up too high reduces how much your core actually has to work","Holding your breath instead of breathing steadily through the hold"], angles:["Elbows directly under your shoulders, not out in front, keeps the load on your core rather than your shoulders","For the side plank, stacking hips and feet directly on top of each other keeps the obliques doing the work rather than your legs"]},
-    movement:'plank', defaultSets:[{reps:0,weight:0},{reps:0,weight:0},{reps:0,weight:0}] },
+    image:'plank', movement:'plank', defaultSets:[{reps:0,weight:0},{reps:0,weight:0},{reps:0,weight:0}] },
 
   { id:'calfRaise', day:'both', optional:true, name:'Standing Calf Raise', equip:'Standing calf raise machine',
     cue:"Kept light on purpose since skating already works your calves often. Full stretch at the bottom, pause at the top, controlled tempo, not bouncy.",
     muscles:{primary:['calves'], secondary:[]},
-    notes:{mistakes:["Bouncing at the bottom instead of a controlled stretch, this is a small muscle group that responds better to control than speed","Cutting the range short, both the stretch at the bottom and the pause at the top matter here","Letting your knees bend to help push, keep them soft but essentially straight throughout"], angles:["Toes pointed straight ahead is the standard setup and works the calf as a whole","Toes turned slightly inward or outward shifts emphasis between the inner and outer calf muscle, not necessary right now but useful variety later"]},
-    movement:'calfRaise', defaultSets:[{reps:15,weight:10},{reps:15,weight:10}] },
+    notes:{mistakes:["Bouncing at the bottom instead of a controlled stretch, this is a small muscle group that responds better to control than speed","Cutting the range short, both the stretch at the bottom and the pause at the top matter here","Letting your knees bend to help push, keep them soft but essentially straight throughout"], angles:["Toes pointed straight ahead is the standard setup and works the calf as a whole","Toes turned slightly inward or outward shifts emphasis between the inner and outer calf muscle, not necessary right now but useful variety later","Keeping the knee straight here is what lets the gastrocnemius, the visible upper calf muscle, do most of the work. Seated Calf Raise bends the knee and shifts the same movement onto the soleus underneath it, worth doing both across the week"]},
+    image:'standing-calve-raises', movement:'calfRaise', defaultSets:[{reps:15,weight:10},{reps:15,weight:10}] },
 
-  { id:'inclinePress', day:'both', optional:true, name:'Incline Press', equip:'Incline bench and barbell, or Smith machine',
-    cue:"Press up and slightly back along the line of the bench, elbows tucked closer than a flat press. Full stretch at the bottom.",
-    muscles:{primary:['chest'], secondary:['frontDelt','triceps']},
-    notes:{mistakes:["Elbows flaring straight out to the sides shifts the work onto the front of the shoulder instead of the upper chest","Bench angle too steep turns this into a shoulder press, 30 to 45 degrees is the useful range for upper chest","Bouncing the bar off your chest at the bottom instead of a controlled stretch"], angles:["Around 30 degrees keeps the emphasis on the upper chest without over-recruiting the front delt","Past about 45 degrees the front delt starts taking over from the chest"]},
-    movement:'inclinePress', defaultSets:[{reps:10,weight:20},{reps:10,weight:20},{reps:10,weight:20}] },
+  { id:'seatedCalfRaise', day:'both', optional:true, name:'Seated Calf Raise', equip:'Seated calf raise machine',
+    cue:"Sit with the pad resting just above your knees, drop your heels for a full stretch, then rise onto your toes and pause at the top. Controlled tempo, not bouncy.",
+    muscles:{primary:['calves'], secondary:[]},
+    notes:{mistakes:["Bouncing at the bottom instead of a controlled stretch and pause, same principle as standing calf raise, this is a small muscle group that responds better to control than speed","Cutting the range short at either end, both the stretch at the bottom and the pause at the top matter"], angles:["The key reason this exists as its own exercise rather than a variation of standing calf raise, bending the knee changes which calf muscle does most of the work","Standing calf raise, with the knee straight, emphasizes the larger gastrocnemius muscle","Seated calf raise, with the knee bent under a pad, takes the gastrocnemius mostly out of the movement and shifts emphasis onto the soleus underneath it, a muscle that barely gets worked when the knee is straight","Doing both across your week, rather than picking one, is genuinely the more complete approach for full calf development, not redundant"]},
+    image:'seated-calve-raises', icon:'machine', defaultSets:[{reps:15,weight:10},{reps:15,weight:10}] },
 
   { id:'suitcaseCarry', day:'both', optional:true, name:'Suitcase Carry', equip:'Single dumbbell, walking space',
     cue:"Carry the weight in one hand like a suitcase, walk tall and resist leaning toward the loaded side. Switch hands halfway.",
     muscles:{primary:['abs'], secondary:['upperBack']},
     notes:{mistakes:["Leaning your torso away from the weight to compensate, the whole point is resisting that pull, not giving in to it","Letting the shoulder on the loaded side hike up toward your ear instead of staying packed down","Rushing the steps, this works best slow and controlled with a tall, braced posture"], angles:["Nothing to adjust here, the challenge comes from the load and the distance walked, not a setup angle"]},
-    movement:'suitcaseCarry', defaultSets:[{reps:20,weight:12},{reps:20,weight:12}] },
+    image:'suitcase-carry', movement:'suitcaseCarry', defaultSets:[{reps:20,weight:12},{reps:20,weight:12}] },
 
   { id:'dumbbellCurl', day:'both', optional:true, name:'Dumbbell Bicep Curl', equip:'Pair of dumbbells, seated or standing',
     cue:"Curl without swinging your torso, elbows stay pinned at your sides through the whole rep.",
     muscles:{primary:['biceps'], secondary:[]},
-    notes:{mistakes:["Swinging your torso or using momentum to heave the weight up instead of a controlled curl","Elbows drifting forward as the weight gets heavier, keep them tucked at your sides","Not fully extending at the bottom, the stretch at the bottom is part of the rep"], angles:["Palms facing forward throughout is the standard version and hits the biceps most directly","Rotating the wrist slightly at the top adds a small peak squeeze, optional once the base movement feels easy"]},
-    movement:'dumbbellCurl', defaultSets:[{reps:11,weight:10},{reps:11,weight:10},{reps:11,weight:10}] },
+    notes:{mistakes:["Swinging the torso or heaving with the shoulders instead of isolating the bicep, if your back is doing the work, the weight is too heavy","Letting the elbow drift forward away from your torso as fatigue sets in, this is usually the first thing to go on a later set","Rushing the lowering phase, a slow 2 to 3 second descent is where a large share of the actual growth stimulus happens, more than the lift itself"], angles:["Standing with elbows pinned at your sides is the default setup","Standing with your back against a wall removes the ability to swing entirely, useful specifically on sets where you notice momentum creeping in"]},
+    image:'standing-bicep-curl', movement:'dumbbellCurl', defaultSets:[{reps:11,weight:10},{reps:11,weight:10},{reps:11,weight:10}] },
 
   { id:'lateralRaise', day:'both', optional:true, name:'Lateral Raise', equip:'Pair of dumbbells, standing',
     cue:"Raise both arms out to the sides to shoulder height, leading with your elbows rather than your hands. Slight bend in the elbow throughout.",
     muscles:{primary:['frontDelt'], secondary:[]},
     notes:{mistakes:["Using momentum to swing the weights up instead of a controlled raise, this is a small muscle group, light weight is correct here","Raising past shoulder height turns it into a shrug and shifts the work onto your traps","Leading with the hands instead of the elbows changes the angle of pull on the shoulder"], angles:["Arms raised straight out to the sides is the standard version","Raising slightly in front of your body shifts a bit more emphasis onto the front delt, useful variety later"]},
-    movement:'lateralRaise', defaultSets:[{reps:12,weight:6},{reps:12,weight:6},{reps:12,weight:6}] },
+    image:'lateral-raises', movement:'lateralRaise', defaultSets:[{reps:12,weight:6},{reps:12,weight:6},{reps:12,weight:6}] },
+
+  { id:'flatDumbbellPress', day:'both', optional:true, name:'Flat Dumbbell Press', equip:'Flat bench, pair of dumbbells',
+    cue:"Press the dumbbells up and slightly in until they nearly touch at the top, lower until your upper arms are just below parallel to the floor.",
+    muscles:{primary:['chest'], secondary:['frontDelt','triceps']},
+    notes:{mistakes:["Letting the dumbbells drift too far apart at the bottom, which overstretches the shoulder joint, especially risky since dumbbells allow more range than a bar and don't stop you the way a bar naturally does","Not controlling the lowering phase, this matters more here than on barbell work since nothing is guiding the path for you","Pressing in an arc that brings the dumbbells together at the top, this should stay a straight vertical path, bringing them together turns it into a hybrid press-fly that shortchanges both"], angles:["Same flat, incline, decline logic as the barbell version, dumbbells simply allow a deeper stretch at the bottom of each rep, which is part of why they're worth including even if you also bench with a bar"]},
+    image:'flat-dumbbell-press', icon:'dumbbell', defaultSets:[{reps:10,weight:12},{reps:10,weight:12},{reps:10,weight:12}] },
+
+  { id:'flatDumbbellFly', day:'both', optional:true, name:'Flat Dumbbell Fly', equip:'Flat bench, pair of dumbbells',
+    cue:"Lie flat, arms slightly bent, lower the dumbbells out to the sides in a wide arc until you feel a stretch across your chest, then bring them back up over your chest in the same arc.",
+    muscles:{primary:['chest'], secondary:['frontDelt']},
+    notes:{mistakes:["Losing the slight, constant elbow bend and turning it into a press, the whole purpose of a fly is isolating the chest through a wide arc, not moving heavy load through the arms","Lowering past shoulder level, which strains the front of the shoulder capsule, the stretch should feel like it's in the chest, not the joint","Using momentum to swing back up instead of a slow, controlled squeeze at the top"], angles:["Keep this one flat","An incline version exists and shifts toward the upper chest, but it also meaningfully increases shoulder strain at that angle, so it needs noticeably lighter weight if you ever try it, not a straight swap"]},
+    image:'flat-dumbbell-fly', icon:'dumbbell', defaultSets:[{reps:12,weight:8},{reps:12,weight:8},{reps:12,weight:8}] },
+
+  { id:'squeezePress', day:'both', optional:true, name:'Squeeze Press', equip:'Flat bench, pair of light dumbbells or a single dumbbell held with both hands',
+    cue:"Press the dumbbells together hard and hold that inward squeeze the entire time you press up and lower down, the squeeze does more work than the weight.",
+    muscles:{primary:['chest'], secondary:['triceps']},
+    notes:{mistakes:["Losing the inward pressure between the dumbbells partway through the rep, the constant squeeze is the entire mechanism here, not just a starting cue","Going too heavy, this is a burnout-style isolation finisher, not a strength lift, if you need to strain to press it, the squeeze is the first thing that breaks down"], angles:["Flat only","This movement is specifically about the center and inner chest, changing the bench angle works directly against that purpose rather than adding variety to it"]},
+    image:'flat-dumbbell-squeeze', icon:'dumbbell', defaultSets:[{reps:12,weight:6},{reps:12,weight:6},{reps:12,weight:6}] },
+
+  { id:'hammerCurl', day:'both', optional:true, name:'Hammer Curl', equip:'Pair of dumbbells, neutral grip, seated or standing',
+    cue:"Curl with your palms facing each other the entire rep, elbows pinned at your sides, no wrist rotation.",
+    muscles:{primary:['biceps'], secondary:[]},
+    notes:{mistakes:["Same swinging and elbow drift issues as a standard curl","Rotating the wrist mid-rep, the neutral, palms-facing-in grip needs to stay neutral throughout, that fixed rotation is precisely what shifts emphasis toward the brachialis and forearm rather than the main bicep"], angles:["Standing, elbows pinned at your sides, identical positioning to a regular curl, only the grip changes here, not the arm angle, which is why it's worth having as its own distinct movement rather than a note on the regular curl"]},
+    image:'standing-hammer-curl', icon:'dumbbell', defaultSets:[{reps:11,weight:10},{reps:11,weight:10},{reps:11,weight:10}] },
+
+  { id:'preacherCurl', day:'both', optional:true, name:'Preacher Curl', equip:'Preacher bench, dumbbell or EZ bar',
+    cue:"Rest the back of your upper arm flat on the pad, curl up without letting your elbow lift off, lower until your arm is almost straight.",
+    muscles:{primary:['biceps'], secondary:[]},
+    notes:{mistakes:["Not fully extending the arm at the bottom of the rep, the preacher bench exists specifically to let you safely access a full range without the shoulder compensating, cutting it short wastes the point of the machine","Lifting your armpit off the pad to cheat the weight up in the last few reps"], angles:["The pad angle is typically fixed on most machines, the technique adjustment is keeping your upper arm flush against the pad throughout, rather than letting it lift away as the weight gets heavy"]},
+    image:'preacher-curl', icon:'dumbbell', defaultSets:[{reps:10,weight:8},{reps:10,weight:8},{reps:10,weight:8}] },
+
+  { id:'benchDip', day:'both', optional:true, name:'Bench Dip', equip:'Flat bench, feet on floor or a second bench',
+    cue:"Hands on the bench behind you, lower your hips straight down by bending your elbows, press back up without locking out hard at the top.",
+    muscles:{primary:['triceps'], secondary:['chest','frontDelt']},
+    notes:{mistakes:["Elbows flaring out wide instead of staying tucked back close to your torso, tucked keeps the triceps doing the work, flared shifts unwanted stress onto the front of the shoulder","Lowering too deep, past a 90 degree elbow bend, which is a common cause of shoulder strain on this specific movement","Walking your feet too close to the bench, which reduces the range and difficulty, extending your legs further out increases the challenge"], angles:["An upright torso through the movement keeps this triceps-dominant, which is the entire reason to do this exercise separately from the Assisted Dip machine, that machine's slight forward lean option biases chest, this one is meant to isolate triceps specifically"]},
+    image:'bench-dip', icon:'bodyweight', defaultSets:[{reps:10,weight:0},{reps:10,weight:0},{reps:10,weight:0}] },
+
+  { id:'legExtension', day:'both', optional:true, name:'Leg Extension', equip:'Leg extension machine',
+    cue:"Extend your legs until they're straight, pause briefly at the top, lower under control back to the start.",
+    muscles:{primary:['quads'], secondary:[]},
+    notes:{mistakes:["Using momentum, swinging the weight up rather than a controlled extension, this is a small isolation movement, cheating it defeats the purpose entirely","Locking the knee out hard at the top on every single rep, occasional lockout is fine but constant hard locking adds unnecessary joint stress over time","Letting your hips lift off the seat to help move heavier weight"], angles:["Seat back position affects hip angle and comfort more than muscle targeting on most machines, the main adjustable variable that matters here is foot pad height, positioned so the pad sits against your shin just above the ankle, not up near the knee"]},
+    image:'leg-extension', icon:'machine', defaultSets:[{reps:12,weight:20},{reps:12,weight:20},{reps:12,weight:20}] },
+
+  { id:'legCurl', day:'both', optional:true, name:'Leg Curl', equip:'Seated or lying leg curl machine',
+    cue:"Curl your heels toward your glutes, squeeze at the top, lower under control back to a full stretch.",
+    muscles:{primary:['hamstrings'], secondary:[]},
+    notes:{mistakes:["Arching the lower back to help pull the weight, keep your hips pressed into the pad throughout","Using a fast, jerky motion instead of controlling both the curl and the return, the lowering phase is doing real work here too","Not fully extending the leg at the start of each rep, cutting range short reduces the actual stimulus"], angles:["Pointing your toes can slightly shift emphasis toward the calf assisting the movement, flexing your feet back keeps the focus more purely on the hamstring, worth trying both to feel the difference"]},
+    image:'leg-curl', icon:'machine', defaultSets:[{reps:12,weight:15},{reps:12,weight:15},{reps:12,weight:15}] },
+
+  { id:'romanianDeadlift', day:'both', optional:true, name:'Romanian Deadlift (Dumbbell)', equip:'Pair of dumbbells',
+    cue:"Hinge at your hips with a soft knee bend, push your hips back and lower the dumbbells along your legs until you feel a stretch in your hamstrings, then drive your hips forward to stand back up.",
+    muscles:{primary:['hamstrings','glutes'], secondary:[]},
+    notes:{mistakes:["Rounding the lower or upper back near the bottom of the rep, almost always a sign the weight is too heavy or you're forcing a range you can't yet control with good form, reduce the load or stop the descent sooner rather than chase depth","Letting the knees bend forward and the hips drop straight down, this turns the movement into a squat pattern instead of a hip hinge, the fix is softening the knees once at the start and then focusing on pushing your hips backward, not down","Holding the dumbbells too far out in front of your body, which lets them drift away and adds strain to your lower back, the better position is angling them roughly 45 degrees so they stay in light contact with your thighs on the way down","Rushing the movement, a slow, controlled descent is what actually trains the hamstrings, dropping fast just hides form breakdowns"], angles:["This isn't an angle-adjustable exercise the way a bench is, but range of motion is the equivalent variable, lower only until you feel a real stretch in your hamstrings, usually around mid-shin, not to the floor, forcing more range than your hamstring flexibility allows is where most of the injury risk in this lift actually comes from"]},
+    image:'romanian-deadlift', icon:'dumbbell', defaultSets:[{reps:10,weight:14},{reps:10,weight:14},{reps:10,weight:14}] },
+
+  { id:'walkingLunge', day:'both', optional:true, name:'Walking Lunge', equip:'Pair of dumbbells, walking space',
+    cue:"Step forward into a lunge, drop your back knee toward the floor, push off your front foot into the next step forward rather than stepping back.",
+    muscles:{primary:['quads'], secondary:['glutes','hamstrings']},
+    notes:{mistakes:["Front knee traveling too far past the toes, some forward travel is normal but excessive lean forward shifts the exercise toward the knee joint rather than the glute and quad","Taking a stride that's too short, which cramps the movement and limits depth, and too long, which makes balance unnecessarily hard, aim for a stride that lets your back knee lightly graze the floor with control","Rushing between steps instead of pausing briefly to find your balance before the next stride"], angles:["A more upright torso through each step emphasizes the quad more, leaning the torso forward slightly shifts more emphasis toward the glute, similar principle to the Bulgarian Split Squat you're already doing, worth alternating which you use across sessions"]},
+    image:'lunges', icon:'dumbbell', defaultSets:[{reps:10,weight:8},{reps:10,weight:8},{reps:10,weight:8}] },
+
+  { id:'hipThrust', day:'both', optional:true, name:'Hip Thrust', equip:'Bench for your upper back, barbell across your hips (or a single dumbbell or bodyweight to start)',
+    cue:"Upper back braced against the bench, drive your hips up until your body forms a straight line from shoulders to knees, squeeze your glutes hard at the top.",
+    muscles:{primary:['glutes'], secondary:['hamstrings']},
+    notes:{mistakes:["Pushing through your toes instead of your heels, this shifts focus away from the glutes and onto the quads, drive through your heels throughout, you can even lift your toes slightly off the ground during a set to reinforce the habit","Overarching your lower back at the top of the movement, which risks the lumbar spine and actually reduces how effectively the glutes are working, at the top your body should form a straight line from shoulders to knees, not an arch","Pushing your hips higher than that straight line in an attempt to feel more of a squeeze, this is what causes the excess arch in the first place"], angles:["Bringing your feet closer together and letting your knees drop outward during the movement increases external rotation at the hip, which shifts more emphasis onto the gluteus medius (the side of the glute) rather than the main glute max, worth trying as a variation once the standard version feels solid"]},
+    image:'hip-thrust', icon:'barbell', defaultSets:[{reps:10,weight:20},{reps:10,weight:20},{reps:10,weight:20}] },
+
+  { id:'pushUpStandard', day:'both', optional:true, name:'Push-Up (Standard)', equip:'Floor mat',
+    cue:"Hands just outside shoulder width, lower your chest to the floor keeping a straight line from head to heels, press back up.",
+    muscles:{primary:['chest'], secondary:['frontDelt','triceps']},
+    notes:{mistakes:["Hips sagging toward the floor, a sign your core has fatigued before your chest and arms have, worth stopping the set there rather than continuing with poor form","Flaring elbows to a full 90 degrees rather than keeping them closer to 45, same shoulder-stress logic as the bench press","Not achieving full range, cutting the descent short before your chest gets close to the floor"], angles:["This is your baseline, mid-chest and triceps roughly evenly split"]},
+    image:'pushups-standard', icon:'bodyweight', defaultSets:[{reps:12,weight:0},{reps:12,weight:0},{reps:12,weight:0}] },
+
+  { id:'pushUpIncline', day:'both', optional:true, name:'Push-Up (Incline)', equip:'Bench or sturdy elevated surface',
+    cue:"Hands on the elevated surface, body straight from head to heels, lower your chest to the edge and press back up.",
+    muscles:{primary:['chest'], secondary:['frontDelt','triceps']},
+    notes:{mistakes:["Same hip sag and elbow flare issues as standard push-ups","Choosing too low an incline if the goal is genuinely reducing difficulty, a higher hand placement (a bench or higher surface) meaningfully reduces the load, a barely-elevated surface doesn't actually make it easier"], angles:["The steeper the incline (hands higher), the easier the movement and the more it shifts toward the front delt and upper chest rather than the mid chest, useful as an easier regression if standard push-ups are still difficult, not really a chest-building variation in its own right"]},
+    image:'pushup-incline', icon:'bodyweight', defaultSets:[{reps:12,weight:0},{reps:12,weight:0},{reps:12,weight:0}] },
+
+  { id:'pushUpDecline', day:'both', optional:true, name:'Push-Up (Decline)', equip:'Bench or sturdy elevated surface for your feet',
+    cue:"Feet elevated behind you, hands on the floor, lower your chest toward the floor keeping a straight line, press back up.",
+    muscles:{primary:['chest'], secondary:['frontDelt','triceps']},
+    notes:{mistakes:["Letting your hips sag as your feet are elevated, the forward lean this creates increases demand on your chest, shoulders, and triceps, while your core has to work harder to stop your hips from collapsing, so fatigue here shows up as sagging faster than it would on a standard push-up","Not achieving a real stretch at the bottom, the whole benefit of this variation is the deeper stretch across the upper chest that the elevated foot position creates"], angles:["Feet elevated on a bench or step, the higher the elevation, the more the emphasis shifts toward the upper chest fibers near the collarbone, the same portion of the chest that flat pressing movements tend to undertrain, which makes this a genuinely useful addition to your library rather than just a harder version of a standard push-up"]},
+    image:'pushup-decline', icon:'bodyweight', defaultSets:[{reps:10,weight:0},{reps:10,weight:0},{reps:10,weight:0}] },
+
+  { id:'pushUpDiamond', day:'both', optional:true, name:'Push-Up (Diamond)', equip:'Floor mat',
+    cue:"Hands together under your chest, thumbs and index fingers forming a diamond, lower your chest to your hands and press back up.",
+    muscles:{primary:['triceps'], secondary:['chest','frontDelt']},
+    notes:{mistakes:["Letting the elbows flare out wide, which defeats the purpose of this variation entirely, the hands need to stay close together and the elbows need to travel back close to your torso, not out to the sides, to keep the emphasis on the triceps rather than sharing it with the chest and shoulders","Sagging hips, same core-fatigue signal as the other variants"], angles:["Hand placement close together directly under the center of the chest, forming a diamond shape with your thumbs and index fingers touching, is what shifts this from a chest movement into a genuinely triceps-dominant one, keeping elbows tucked close throughout the movement matters more here than in any other push-up variant"]},
+    image:'pushup-diamond', icon:'bodyweight', defaultSets:[{reps:8,weight:0},{reps:8,weight:0},{reps:8,weight:0}] },
+
+  { id:'bandRotatorCuffCore', day:'both', optional:true, name:'Band Rotator Cuff and Core Finisher', equip:'Light resistance band anchored at roughly elbow height',
+    cue:"Elbow pinned at your side, rotate your forearm outward against the band, then back to center under control. Finish each set with a short anti-rotation core hold in the same stance.",
+    muscles:{primary:['rearDelt'], secondary:['abs']},
+    notes:{mistakes:["Letting the elbow drift away from your side turns this into a shoulder movement instead of isolating the rotator cuff","Using a band heavy enough that you have to use your shoulder or torso to help, this should stay light and controlled throughout","Rushing the core hold at the end instead of bracing properly for the full time"], angles:["Band anchored at roughly elbow height keeps the resistance angle correct for external rotation","Standing side-on to the anchor doubles as the setup for the core hold portion of the finisher, no need to reposition between the two"]},
+    image:'band-rotator-cuff-core', icon:'band', defaultSets:[{reps:15,weight:0},{reps:15,weight:0}] },
 ];
 
 let currentDay = 'A';
 let currentExerciseId = null;
 let sets = [];
 let history = {}; // { exerciseId: [ {date, sets:[...]} , ... ] }
+let currentVariants = {}; // active selector values (height, angle, mode...) for the open exercise
+
+let allSubView = 'list';
+let allSearchQuery = '';
+let selectedMuscleRegion = null;
 
 /* ---------- STORAGE ---------- */
 
@@ -691,6 +862,30 @@ function loadHistory(){
     const raw = localStorage.getItem('workout-history');
     history = raw ? JSON.parse(raw) : {};
   }catch(e){ history = {}; }
+  migrateInclinePressHistory();
+}
+
+// Incline Press was merged into Bench Press (chestPress) with an angle selector.
+// Fold any previously logged Incline Press sessions in so they don't silently disappear.
+function migrateInclinePressHistory(){
+  let changed = false;
+  if(history['inclinePress'] && history['inclinePress'].length){
+    if(!history['chestPress']) history['chestPress'] = [];
+    history['inclinePress'].forEach(entry => {
+      entry.angle = 'incline';
+      entry.mode = 'bilateral';
+      history['chestPress'].push(entry);
+    });
+    delete history['inclinePress'];
+    changed = true;
+  }
+  if(history['chestPress'] && history['chestPress'].length){
+    history['chestPress'].forEach(entry => {
+      if(!entry.angle){ entry.angle = 'flat'; entry.mode = 'bilateral'; changed = true; }
+    });
+    history['chestPress'].sort((a,b) => new Date(b.date) - new Date(a.date));
+  }
+  if(changed) persistHistory();
 }
 
 function persistHistory(){
@@ -700,8 +895,23 @@ function persistHistory(){
 }
 
 /* ---------- MINI ICON (hub thumbnail) ---------- */
+/* Exercises added without a curated photo (see ICON_SHAPES) use a small hand-built
+   inline SVG glyph here and in the Execution tab instead of a missing image file. */
+
+const ICON_SHAPES = {
+  dumbbell: `<line x1="10" y1="30" x2="34" y2="12"/><circle cx="9" cy="31" r="6"/><circle cx="35" cy="11" r="6"/>`,
+  barbell: `<line x1="6" y1="22" x2="38" y2="22"/><rect x="2" y="13" width="7" height="18" rx="2"/><rect x="35" y="13" width="7" height="18" rx="2"/>`,
+  machine: `<rect x="9" y="5" width="26" height="34" rx="3"/><line x1="14" y1="13" x2="30" y2="13"/><line x1="14" y1="19" x2="30" y2="19"/><line x1="14" y1="25" x2="30" y2="25"/><line x1="14" y1="31" x2="30" y2="31"/>`,
+  bodyweight: `<circle cx="10" cy="11" r="4"/><line x1="13" y1="14" x2="35" y2="29"/><line x1="18" y1="18" x2="11" y2="30"/><line x1="29" y1="25" x2="36" y2="33"/>`,
+  band: `<circle cx="6" cy="22" r="3"/><path d="M9 22 Q16 8 22 22 T38 22" fill="none"/><circle cx="38" cy="22" r="3"/>`
+};
+
+function iconSvg(key, size){
+  return `<svg viewBox="0 0 44 44" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${ICON_SHAPES[key] || ''}</svg>`;
+}
 
 function miniIcon(exercise){
+  if(exercise.icon) return iconSvg(exercise.icon, 44);
   return `<img src="img/thumb-${exercise.movement}.png" alt="" loading="lazy">`;
 }
 
@@ -763,6 +973,18 @@ function cardHtml(e){
 function renderHub(){
   const list = document.getElementById('exerciseList');
   const head = document.getElementById('hubSectionHead');
+  const allWrap = document.getElementById('allTabWrap');
+
+  if(currentDay === 'all'){
+    list.style.display = 'none';
+    head.style.display = 'none';
+    allWrap.style.display = 'block';
+    setAllSubView(allSubView);
+    return;
+  }
+  allWrap.style.display = 'none';
+  list.style.display = '';
+
   if(currentDay === 'optional'){
     head.style.display = 'block';
     const items = EXERCISES.filter(e => e.optional);
@@ -774,13 +996,71 @@ function renderHub(){
   }
 }
 
+/* ---------- ALL TAB: searchable list + interactive muscle diagram ---------- */
+
+function setAllSubView(view){
+  allSubView = view;
+  document.querySelectorAll('.subtab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.subview === view));
+  document.getElementById('allListView').style.display = view === 'list' ? 'block' : 'none';
+  document.getElementById('allDiagramView').style.display = view === 'diagram' ? 'block' : 'none';
+  if(view === 'diagram') renderAllDiagram();
+  else renderAllList();
+}
+
+function onAllSearchInput(val){
+  allSearchQuery = val.trim().toLowerCase();
+  renderAllList();
+}
+
+function renderAllList(){
+  const wrap = document.getElementById('allListResults');
+  const items = EXERCISES.filter(e => e.name.toLowerCase().includes(allSearchQuery));
+  wrap.innerHTML = items.length ? items.map(cardHtml).join('') : `<div class="empty">No exercises match that search.</div>`;
+}
+
+function selectMuscleRegion(key){
+  selectedMuscleRegion = (selectedMuscleRegion === key) ? null : key;
+  renderAllDiagram();
+}
+
+function renderAllDiagram(){
+  const state = { selected: selectedMuscleRegion };
+  document.getElementById('bodyFrontPanel').innerHTML = renderBodyPanel('front', 'interactive', state);
+  document.getElementById('bodyBackPanel').innerHTML = renderBodyPanel('back', 'interactive', state);
+  renderMuscleFilterResults();
+}
+
+function renderMuscleFilterResults(){
+  const wrap = document.getElementById('allDiagramResults');
+  if(!selectedMuscleRegion){
+    wrap.innerHTML = `<div class="empty">Tap a highlighted area above to see exercises that target it.</div>`;
+    return;
+  }
+  const label = MUSCLE_LABELS[selectedMuscleRegion];
+  const primary = EXERCISES.filter(e => e.muscles.primary.includes(selectedMuscleRegion));
+  const secondary = EXERCISES.filter(e => !e.muscles.primary.includes(selectedMuscleRegion) && e.muscles.secondary.includes(selectedMuscleRegion));
+  let html = `<div class="section-head"><h2>Primary: ${label}</h2></div>`;
+  html += `<div class="list">${primary.length ? primary.map(cardHtml).join('') : '<div class="empty">No exercises primarily target this.</div>'}</div>`;
+  html += `<div class="section-head"><h2>Secondary: ${label}</h2></div>`;
+  html += `<div class="list">${secondary.length ? secondary.map(cardHtml).join('') : '<div class="empty">No exercises use this as a secondary target.</div>'}</div>`;
+  wrap.innerHTML = html;
+}
+
 /* ---------- DETAIL VIEW ---------- */
 
 function openDetail(id){
   currentExerciseId = id;
   const e = EXERCISES.find(x => x.id === id);
   const h = history[id] || [];
-  if(e.unilateral){
+
+  currentVariants = {};
+  if(e.variants){
+    e.variants.forEach(v => {
+      currentVariants[v.key] = (h[0] && h[0][v.key] !== undefined) ? h[0][v.key] : v.default;
+    });
+  }
+
+  if(isUnilateral(id)){
     sets = (h[0] && h[0].sets && h[0].sets.left && h[0].sets.right)
       ? JSON.parse(JSON.stringify(h[0].sets))
       : { left: JSON.parse(JSON.stringify(e.defaultSets)), right: JSON.parse(JSON.stringify(e.defaultSets)) };
@@ -791,15 +1071,16 @@ function openDetail(id){
   document.getElementById('detailName').textContent = e.name;
   document.getElementById('detailEquip').textContent = e.equip;
   document.getElementById('modalName').textContent = e.name;
-  document.getElementById('cueText').textContent = e.cue;
+  document.getElementById('cueText').textContent = getCue(e);
   document.getElementById('saveConfirm').textContent = '';
   closeFeelingPrompt();
   stopRestTimer();
   expandedHistoryRows = new Set();
 
+  renderVariantRow();
   renderSets();
-  renderMovement(e.movement);
-  renderMuscleImage(e.movement);
+  renderMovement(e);
+  renderMuscleImage(e);
   renderModalHistory(id);
   renderNotes(e.notes);
 
@@ -827,7 +1108,9 @@ function buildSessions(){
       if(!dayMap[key]) dayMap[key] = {};
       const existing = dayMap[key][exerciseId];
       if(!existing || new Date(entry.date) > new Date(existing.date)){
-        dayMap[key][exerciseId] = { date: entry.date, exerciseName: ex.name, sets: entry.sets, feeling: entry.feeling };
+        const variantFields = {};
+        if(ex.variants) ex.variants.forEach(v => { variantFields[v.key] = entry[v.key]; });
+        dayMap[key][exerciseId] = { exerciseId, date: entry.date, exerciseName: ex.name, sets: entry.sets, feeling: entry.feeling, ...variantFields };
       }
     });
   }
@@ -882,7 +1165,8 @@ function renderSessionLog(){
     const exList = s.exercises.map(e => {
       const feelingDot = ['easy','solid','rough'].includes(e.feeling) ? `<span class="feeling-dot ${e.feeling}"></span>` : '';
       const n = setCount(e.sets);
-      return `<div class="session-ex-row"><span>${e.exerciseName}${feelingDot}</span><span>${n} set${n===1?'':'s'}</span></div>`;
+      const vLabel = variantLabel(EXERCISES.find(x => x.id === e.exerciseId), e);
+      return `<div class="session-ex-row"><span>${e.exerciseName}${feelingDot}${vLabel ? ` <span class="pill">${vLabel}</span>` : ''}</span><span>${n} set${n===1?'':'s'}</span></div>`;
     }).join('');
     return `
       <div class="session-card">
@@ -992,6 +1276,7 @@ function renderDayDetail(day){
   wrap.innerHTML = day.exercises.map(e => {
     const isSided = e.sets && e.sets.left && e.sets.right;
     const feelingDot = ['easy','solid','rough'].includes(e.feeling) ? `<span class="feeling-dot ${e.feeling}"></span>` : '';
+    const vLabel = variantLabel(EXERCISES.find(x => x.id === e.exerciseId), e);
     const breakdown = isSided ? `
       <div class="history-side-group">
         <div class="history-side-label">Right</div>
@@ -1003,7 +1288,7 @@ function renderDayDetail(day){
       </div>` : setBreakdownHtml(e.sets);
     return `
       <div class="session-card">
-        <div class="session-date">${e.exerciseName}${feelingDot}</div>
+        <div class="session-date">${e.exerciseName}${feelingDot}${vLabel ? ` <span class="pill">${vLabel}</span>` : ''}</div>
         <div class="history-breakdown" style="border-bottom:none; padding-bottom:0;">${breakdown}</div>
       </div>`;
   }).join('');
@@ -1074,7 +1359,51 @@ function stopRestTimer(){
 
 function isUnilateral(exerciseId){
   const e = EXERCISES.find(x => x.id === exerciseId);
-  return !!(e && e.unilateral);
+  if(!e) return false;
+  if(e.modeKey) return currentVariants[e.modeKey] === 'unilateral';
+  return !!e.unilateral;
+}
+
+function getCue(e){
+  return typeof e.cue === 'function' ? e.cue(currentVariants) : e.cue;
+}
+
+function variantLabel(e, entry){
+  if(!e || !e.variants || !entry) return '';
+  const parts = e.variants.map(v => {
+    const val = entry[v.key];
+    if(val === undefined) return null;
+    const opt = v.options.find(o => o.value === val);
+    return opt ? opt.label : null;
+  }).filter(Boolean);
+  return parts.join(' · ');
+}
+
+function renderVariantRow(){
+  const wrap = document.getElementById('variantRow');
+  const e = EXERCISES.find(x => x.id === currentExerciseId);
+  if(!e || !e.variants || !e.variants.length){ wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
+  wrap.style.display = 'flex';
+  wrap.innerHTML = e.variants.map(v => `
+    <div class="variant-group">
+      <span class="field-label">${v.label}</span>
+      <div class="variant-btns">
+        ${v.options.map(o => `<button class="variant-btn${currentVariants[v.key]===o.value ? ' active' : ''}" onclick="setVariant('${v.key}','${o.value}')">${o.label}</button>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function setVariant(key, value){
+  const e = EXERCISES.find(x => x.id === currentExerciseId);
+  currentVariants[key] = value;
+  if(e.modeKey === key){
+    sets = (value === 'unilateral')
+      ? { left: JSON.parse(JSON.stringify(e.defaultSets)), right: JSON.parse(JSON.stringify(e.defaultSets)) }
+      : JSON.parse(JSON.stringify(e.defaultSets));
+    renderSets();
+  }
+  renderVariantRow();
+  document.getElementById('cueText').textContent = getCue(e);
 }
 
 function sliderFillStyle(min, max, val){
@@ -1231,7 +1560,11 @@ function removeSet(i){
 }
 
 async function saveWorkout(){
+  const e = EXERCISES.find(x => x.id === currentExerciseId);
   const entry = { date: new Date().toISOString(), sets: JSON.parse(JSON.stringify(sets)), feeling: null };
+  if(e.variants){
+    e.variants.forEach(v => { entry[v.key] = currentVariants[v.key]; });
+  }
   if(!history[currentExerciseId]) history[currentExerciseId] = [];
   history[currentExerciseId].unshift(entry);
   await persistHistory();
@@ -1411,11 +1744,13 @@ function setBreakdownHtml(sideSets){
 
 function renderModalHistory(id){
   const h = history[id] || [];
+  const e = EXERCISES.find(x => x.id === id);
   const wrap = document.getElementById('modalHistory');
   renderTrendChart(id);
   if(h.length === 0){ wrap.innerHTML = '<div class="empty">No sessions logged yet for this exercise.</div>'; return; }
   wrap.innerHTML = h.map((entry, i) => {
     const d = new Date(entry.date);
+    const vLabel = variantLabel(e, entry);
     const dateStr = d.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'});
     const isSided = entry.sets && entry.sets.left && entry.sets.right;
     let summary;
@@ -1447,7 +1782,7 @@ function renderModalHistory(id){
     return `<div class="history-row">
       <div class="history-delete-bg" onclick="deleteHistoryEntry('${id}', ${i}, true)">Delete</div>
       <div class="history-item${expanded ? ' expanded' : ''}" onclick="toggleHistoryRow(${i})">
-        <div class="history-text"><span>${dateStr}${feelingDot}</span><b style="text-align:right; max-width:60%;">${summary}</b></div>
+        <div class="history-text"><span>${dateStr}${feelingDot}${vLabel ? ` <span class="pill">${vLabel}</span>` : ''}</span><b style="text-align:right; max-width:60%;">${summary}</b></div>
         <button class="del-history" onclick="event.stopPropagation(); deleteHistoryEntry('${id}', ${i})">&times;</button>
       </div>
       ${breakdown}
@@ -1514,20 +1849,108 @@ function renderNotes(notes){
 
 /* ---------- MOVEMENT DIAGRAMS ---------- */
 
-function renderMovement(kind){
-  document.getElementById('movementSvg').innerHTML = `
-    <div class="exec-panel">
-      <img src="img/${kind}.png" alt="Execution diagram" loading="lazy">
-    </div>
+function renderMovement(e){
+  const wrap = document.getElementById('movementSvg');
+  if(e.image){
+    wrap.innerHTML = `
+      <div class="exec-panel">
+        <img src="images/${e.image}.png" alt="Execution diagram" loading="lazy">
+      </div>
+    `;
+  } else if(e.icon){
+    wrap.innerHTML = `<div class="exec-panel exec-icon-wrap">${iconSvg(e.icon, 96)}</div>`;
+  } else {
+    wrap.innerHTML = `
+      <div class="exec-panel">
+        <img src="img/${e.movement}.png" alt="Execution diagram" loading="lazy">
+      </div>
+    `;
+  }
+}
+
+function renderMuscleImage(e){
+  const wrap = document.getElementById('muscleImg');
+  if(e.icon){
+    const state = { primary: e.muscles.primary, secondary: e.muscles.secondary };
+    wrap.innerHTML = `
+      <div class="exec-panel">${renderBodyPanel('front', 'highlight', state)}</div>
+      <div class="exec-panel">${renderBodyPanel('back', 'highlight', state)}</div>
+    `;
+  } else {
+    wrap.innerHTML = `
+      <div class="exec-panel">
+        <img src="img/muscles-${e.movement}.png" alt="Muscle groups worked" loading="lazy">
+      </div>
+    `;
+  }
+}
+
+/* ---------- SHARED BODY DIAGRAM (All-tab browser + per-exercise muscle highlight) ---------- */
+
+const MUSCLE_LABELS = {
+  chest:'Chest', frontDelt:'Front delts', triceps:'Triceps', lats:'Lats', upperBack:'Upper back',
+  biceps:'Biceps', rearDelt:'Rear delts', quads:'Quads', glutes:'Glutes', hamstrings:'Hamstrings',
+  calves:'Calves', abs:'Abs'
+};
+
+const BODY_REGIONS = {
+  front: [
+    { key:'frontDelt', shapes:[{t:'ellipse',cx:28,cy:54,rx:10,ry:10},{t:'ellipse',cx:92,cy:54,rx:10,ry:10}] },
+    { key:'chest', shapes:[{t:'rect',x:40,y:50,w:40,h:32,rx:8}] },
+    { key:'biceps', shapes:[{t:'rect',x:12,y:64,w:12,h:34,rx:6},{t:'rect',x:96,y:64,w:12,h:34,rx:6}] },
+    { key:'abs', shapes:[{t:'rect',x:44,y:86,w:32,h:46,rx:8}] },
+    { key:'quads', shapes:[{t:'rect',x:31,y:152,w:24,h:58,rx:10},{t:'rect',x:65,y:152,w:24,h:58,rx:10}] },
+  ],
+  back: [
+    { key:'rearDelt', shapes:[{t:'ellipse',cx:28,cy:54,rx:10,ry:10},{t:'ellipse',cx:92,cy:54,rx:10,ry:10}] },
+    { key:'upperBack', shapes:[{t:'rect',x:40,y:50,w:40,h:28,rx:8}] },
+    { key:'lats', shapes:[{t:'rect',x:34,y:78,w:18,h:34,rx:8},{t:'rect',x:68,y:78,w:18,h:34,rx:8}] },
+    { key:'triceps', shapes:[{t:'rect',x:12,y:64,w:12,h:34,rx:6},{t:'rect',x:96,y:64,w:12,h:34,rx:6}] },
+    { key:'glutes', shapes:[{t:'rect',x:33,y:142,w:22,h:26,rx:10},{t:'rect',x:65,y:142,w:22,h:26,rx:10}] },
+    { key:'hamstrings', shapes:[{t:'rect',x:31,y:168,w:24,h:48,rx:10},{t:'rect',x:65,y:168,w:24,h:48,rx:10}] },
+    { key:'calves', shapes:[{t:'rect',x:32,y:220,w:22,h:38,rx:10},{t:'rect',x:66,y:220,w:22,h:38,rx:10}] },
+  ]
+};
+
+function bodyOutlineSvg(){
+  return `
+    <circle cx="60" cy="22" r="16"/>
+    <rect x="54" y="35" width="12" height="12"/>
+    <rect x="35" y="44" width="50" height="100" rx="20"/>
+    <rect x="10" y="50" width="14" height="90" rx="7"/>
+    <rect x="96" y="50" width="14" height="90" rx="7"/>
+    <rect x="30" y="140" width="26" height="118" rx="13"/>
+    <rect x="64" y="140" width="26" height="118" rx="13"/>
   `;
 }
 
-function renderMuscleImage(kind){
-  document.getElementById('muscleImg').innerHTML = `
-    <div class="exec-panel">
-      <img src="img/muscles-${kind}.png" alt="Muscle groups worked" loading="lazy">
-    </div>
-  `;
+function shapeSvg(shape, extraAttrs){
+  if(shape.t === 'ellipse') return `<ellipse cx="${shape.cx}" cy="${shape.cy}" rx="${shape.rx}" ry="${shape.ry}" ${extraAttrs}/>`;
+  return `<rect x="${shape.x}" y="${shape.y}" width="${shape.w}" height="${shape.h}" rx="${shape.rx}" ${extraAttrs}/>`;
+}
+
+// mode 'interactive': state = {selected}, tappable, used by the All tab diagram browser.
+// mode 'highlight': state = {primary:[...], secondary:[...]}, static, used per-exercise.
+function renderBodyPanel(view, mode, state){
+  const regions = BODY_REGIONS[view];
+  const regionMarkup = regions.map(r => {
+    let fill, extra = '';
+    if(mode === 'interactive'){
+      fill = state.selected === r.key ? 'var(--accent)' : 'var(--idle)';
+      extra = `class="body-region" data-region="${r.key}" onclick="selectMuscleRegion('${r.key}')"`;
+    } else {
+      fill = state.primary.includes(r.key) ? 'var(--accent)'
+        : state.secondary.includes(r.key) ? 'var(--accent-secondary)'
+        : 'var(--idle)';
+    }
+    const title = `<title>${MUSCLE_LABELS[r.key]}</title>`;
+    return `<g ${extra}>${title}${r.shapes.map(s => shapeSvg(s, `fill="${fill}"`)).join('')}</g>`;
+  }).join('');
+  return `
+    <svg viewBox="0 0 120 262" class="body-diagram-svg">
+      <g fill="#0f0f11" stroke="var(--card-line)" stroke-width="2">${bodyOutlineSvg()}</g>
+      ${regionMarkup}
+    </svg>`;
 }
 
 /* ---------- INIT ---------- */
