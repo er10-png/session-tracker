@@ -367,6 +367,24 @@
   .history-set-row{ display:flex; justify-content:space-between; font-size:12px; color:var(--dim); padding:4px 0; }
   .empty{ font-size:12.5px; color:var(--dim); text-align:center; padding:14px 0; }
 
+  /* tap-and-hold image preview */
+  .preview-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,0.75);
+    display:flex; align-items:center; justify-content:center;
+    z-index:30; padding:24px;
+    opacity:0; pointer-events:none;
+    transition:opacity .15s ease;
+  }
+  .preview-overlay.open{ opacity:1; }
+  .preview-overlay img{
+    max-width:100%; max-height:100%;
+    border-radius:14px;
+    box-shadow:0 8px 30px rgba(0,0,0,0.5);
+    transform:scale(0.94);
+    transition:transform .15s ease;
+  }
+  .preview-overlay.open img{ transform:scale(1); }
+
   /* variant selectors (pulley height, bench angle/mode) */
   .variant-row{ margin:14px 16px 0; display:flex; flex-direction:column; gap:10px; }
   .variant-group{ background:var(--card); border:1px solid var(--card-line); border-radius:10px; padding:10px 12px; }
@@ -555,6 +573,11 @@
       <div class="backup-status" id="backupStatus"></div>
     </div>
   </div>
+</div>
+
+<!-- IMAGE PREVIEW OVERLAY (tap and hold an exercise card) -->
+<div class="preview-overlay" id="previewOverlay">
+  <img id="previewImage" src="" alt="Exercise preview">
 </div>
 
 <!-- FEELING OVERLAY -->
@@ -951,7 +974,7 @@ function cardHtml(e){
     lastPill = top > 0 ? `<span class="pill last">Last ${top}kg${trendArrow(h)}</span>` : `<span class="pill last">Logged</span>`;
   }
   return `
-    <div class="ex-card" onclick="openDetail('${e.id}')">
+    <div class="ex-card" data-id="${e.id}" onclick="openDetail('${e.id}')">
       <div class="thumb">${miniIcon(e)}</div>
       <div class="ex-info">
         <div class="ex-name">${e.name}</div>
@@ -1894,6 +1917,78 @@ function renderMovement(e){
   document.addEventListener('click', (e) => {
     const btn = e.target.closest('.stepper-btn-lg');
     if(!btn) return;
+    if(holdFired){
+      e.preventDefault();
+      e.stopPropagation();
+      holdFired = false;
+    }
+  }, true);
+})();
+
+/* ---------- EXERCISE CARD PRESS-AND-HOLD IMAGE PREVIEW ---------- */
+
+(function setupImagePreview(){
+  const HOLD_DELAY = 380;
+  const MOVE_CANCEL_PX = 10;
+
+  let holdTimeout = null;
+  let holdFired = false;
+  let startX = 0, startY = 0;
+  let activeCard = null;
+
+  function showPreview(card){
+    const e = EXERCISES.find(x => x.id === card.dataset.id);
+    if(!e) return;
+    const img = document.getElementById('previewImage');
+    if(e.image) img.src = `images/${e.image}.png`;
+    else if(e.movement) img.src = `img/${e.movement}.png`;
+    else return;
+    document.getElementById('previewOverlay').classList.add('open');
+  }
+
+  function hidePreview(){
+    document.getElementById('previewOverlay').classList.remove('open');
+  }
+
+  function clearHold(){
+    clearTimeout(holdTimeout);
+    holdTimeout = null;
+    activeCard = null;
+  }
+
+  document.addEventListener('touchstart', (e) => {
+    const card = e.target.closest('.ex-card');
+    if(!card) return;
+    clearHold();
+    holdFired = false;
+    activeCard = card;
+    const t = e.touches[0];
+    startX = t.clientX; startY = t.clientY;
+    holdTimeout = setTimeout(() => {
+      holdFired = true;
+      showPreview(card);
+    }, HOLD_DELAY);
+  }, {passive:true});
+
+  document.addEventListener('touchmove', (e) => {
+    if(!activeCard) return;
+    const t = e.touches[0];
+    if(Math.abs(t.clientX - startX) > MOVE_CANCEL_PX || Math.abs(t.clientY - startY) > MOVE_CANCEL_PX){
+      clearHold();
+      if(holdFired) hidePreview();
+    }
+  }, {passive:true});
+
+  function endHold(){
+    if(holdFired) hidePreview();
+    clearHold();
+  }
+  document.addEventListener('touchend', endHold);
+  document.addEventListener('touchcancel', endHold);
+
+  document.addEventListener('click', (e) => {
+    const card = e.target.closest('.ex-card');
+    if(!card) return;
     if(holdFired){
       e.preventDefault();
       e.stopPropagation();
