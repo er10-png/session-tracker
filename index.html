@@ -379,6 +379,16 @@
   .all-search-row{ margin:14px 16px 0; }
   .search-input{ width:100%; padding:11px 14px; background:var(--card); border:1px solid var(--card-line); border-radius:8px; color:var(--ink); font-size:14px; }
   .search-input::placeholder{ color:var(--dim); }
+
+  /* All tab list: two-column grid, scoped so the A/B/C hub list is untouched */
+  .list.grid-2col{ display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; }
+  .grid-2col .ex-card{ gap:8px; padding:10px; }
+  .grid-2col .thumb{ width:40px; height:40px; }
+  .grid-2col .thumb img{ width:34px; height:34px; }
+  .grid-2col .chevron{ display:none; }
+  .grid-2col .ex-name{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .grid-2col .ex-equip{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .grid-2col .empty{ grid-column: 1 / -1; }
 </style>
 </head>
 <body>
@@ -408,7 +418,7 @@
     <div class="all-search-row">
       <input type="text" class="search-input" id="allSearchInput" placeholder="Search exercises by name" oninput="onAllSearchInput(this.value)">
     </div>
-    <div class="list" id="allListResults"></div>
+    <div class="list grid-2col" id="allListResults"></div>
   </div>
 </div>
 
