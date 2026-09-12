@@ -34,7 +34,8 @@
   .header-btn{
     font-size:10px; font-weight:700; letter-spacing:0.01em;
     color:var(--dim); background:none; border:1px solid var(--card-line);
-    border-radius:20px; padding:6px 8px; white-space:nowrap;
+    border-radius:20px; padding:0 12px; min-height:38px; white-space:nowrap;
+    display:flex; align-items:center; justify-content:center; touch-action:manipulation;
   }
   .eyebrow{
     font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
@@ -110,7 +111,7 @@
     padding:18px 16px 12px;
     border-bottom:1px solid var(--card-line);
   }
-  .back-btn, .info-btn{
+  .back-btn{
     width:32px; height:32px;
     border-radius:50%;
     border:1px solid var(--card-line);
@@ -119,6 +120,16 @@
     font-size:16px;
     display:flex; align-items:center; justify-content:center;
     flex-shrink:0;
+  }
+  .info-btn{
+    min-height:44px; padding:0 16px;
+    border-radius:22px;
+    border:1px solid var(--card-line);
+    background:none;
+    color:var(--ink);
+    font-size:13px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; gap:5px;
+    flex-shrink:0; touch-action:manipulation;
   }
   .detail-title{ flex:1; min-width:0; }
   .detail-title .ex-name{ font-size:17px; }
@@ -148,8 +159,8 @@
   .apply-btn{
     font-size:10px; font-weight:700; letter-spacing:0.02em;
     color:var(--accent); background:var(--accent-dim); border:none;
-    border-radius:20px; padding:5px 10px; white-space:nowrap;
-    touch-action:manipulation;
+    border-radius:20px; padding:0 14px; min-height:36px; white-space:nowrap;
+    display:flex; align-items:center; justify-content:center; touch-action:manipulation;
   }
   .apply-btn:active{ transform:scale(0.94); }
   .history-side-group{ padding:0 0 8px 4px; }
@@ -208,7 +219,7 @@
   .add-set{ width:100%; padding:12px; background:none; border:none; color:var(--accent); font-size:13px; font-weight:700; }
   .save-btn{
     width:calc(100% - 32px);
-    margin:12px 16px 4px;
+    margin:14px 16px 4px;
     padding:14px; background:var(--accent); border:none; border-radius:8px;
     color:#fff; font-size:14px; font-weight:700;
   }
@@ -245,7 +256,7 @@
   }
   .modal-head{ display:flex; justify-content:space-between; align-items:center; padding:18px 16px 8px; }
   .modal-head h2{ font-size:17px; font-weight:800; }
-  .close-btn{ width:30px; height:30px; border-radius:50%; border:none; background:#26262b; color:var(--ink); font-size:16px; }
+  .close-btn{ width:32px; height:32px; border-radius:50%; border:none; background:#26262b; color:var(--ink); font-size:16px; display:flex; align-items:center; justify-content:center; }
   .tabs{ display:flex; border-bottom:1px solid var(--card-line); padding:0 16px; }
   .tab{ flex:1; text-align:center; padding:10px 0; font-size:13px; color:var(--dim); font-weight:600; border-bottom:2px solid transparent; }
   .tab.active{ color:var(--accent); border-color:var(--accent); }
@@ -254,7 +265,7 @@
   .tab-panel.active{ display:block; }
   .tab-panel p{ font-size:13px; color:var(--dim); line-height:1.5; margin-bottom:10px; }
 
-  .exec-seq{ display:flex; gap:10px; margin-bottom:14px; }
+  .exec-seq{ display:flex; gap:10px; }
   .exec-panel{
     flex:1; background:#0c0c0e; border:1px solid var(--card-line);
     border-radius:10px; overflow:hidden; position:relative;
@@ -269,24 +280,30 @@
   .backup-btn.secondary{ background:var(--idle); color:var(--ink); }
   .backup-status{ text-align:center; font-size:12px; color:var(--dim); padding-top:6px; min-height:16px; }
   .hidden-file-input{ display:none; }
-  .rest-row{ margin:10px 16px 0; }
+  .rest-row{ margin:14px 16px 0; }
   .rest-start-btn{
-    width:100%; padding:11px; background:none; border:1px solid var(--card-line);
-    border-radius:8px; color:var(--dim); font-size:13px; font-weight:700;
+    width:100%; min-height:56px; padding:0 11px; background:none; border:1px solid var(--card-line);
+    border-radius:10px; color:var(--dim); font-size:14px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; touch-action:manipulation;
   }
   .rest-options{ display:flex; gap:8px; }
   .rest-opt-btn{
-    flex:1; padding:11px 0; background:none; border:1px solid var(--card-line);
-    border-radius:8px; color:var(--dim); font-size:13px; font-weight:700;
+    flex:1; min-height:56px; padding:0; background:none; border:1px solid var(--card-line);
+    border-radius:10px; color:var(--dim); font-size:14px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; touch-action:manipulation;
   }
   .rest-active{
-    display:flex; align-items:center; gap:10px;
-    padding:10px 14px; background:var(--card); border:1px solid var(--card-line); border-radius:8px;
+    display:flex; align-items:center; gap:10px; min-height:60px;
+    padding:0 14px; background:var(--card); border:1px solid var(--card-line); border-radius:10px;
   }
-  .rest-time{ font-size:15px; font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums; min-width:20px; }
-  .rest-bar{ flex:1; height:3px; background:var(--idle); border-radius:2px; overflow:hidden; }
+  .rest-time{ font-size:16px; font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums; min-width:24px; }
+  .rest-bar{ flex:1; height:4px; background:var(--idle); border-radius:2px; overflow:hidden; }
   .rest-bar-fill{ height:100%; width:100%; background:var(--dim); border-radius:2px; transition:width 1s linear; }
-  .rest-cancel-btn{ background:none; border:none; color:var(--dim); font-size:12px; font-weight:700; padding:4px 6px; flex-shrink:0; }
+  .rest-cancel-btn{
+    background:var(--idle); border:none; color:var(--ink); font-size:13px; font-weight:700;
+    min-height:48px; min-width:64px; padding:0 16px; border-radius:10px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; touch-action:manipulation;
+  }
   .session-card{ background:var(--card); border:1px solid var(--card-line); border-radius:10px; padding:14px; }
   .session-card-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
   .del-session{ background:none; border:none; color:var(--dim); font-size:18px; line-height:1; padding:0 2px; flex-shrink:0; }
@@ -361,22 +378,10 @@
   .variant-btn{ flex:1; padding:9px 0; border-radius:8px; border:1px solid var(--card-line); background:none; color:var(--dim); font-size:12.5px; font-weight:700; touch-action:manipulation; }
   .variant-btn.active{ background:var(--accent-dim); color:var(--accent); border-color:transparent; }
 
-  /* All tab: search + list/diagram sub-toggle */
-  .subtab-row{ display:flex; margin:14px 16px 0; background:var(--card); border:1px solid var(--card-line); border-radius:10px; overflow:hidden; }
-  .subtab-btn{ flex:1; min-height:40px; padding:10px 0; text-align:center; font-size:13px; font-weight:700; color:var(--dim); background:none; border:none; }
-  .subtab-btn.active{ background:var(--accent-dim); color:var(--accent); }
+  /* All tab: search */
   .all-search-row{ margin:14px 16px 0; }
   .search-input{ width:100%; padding:11px 14px; background:var(--card); border:1px solid var(--card-line); border-radius:8px; color:var(--ink); font-size:14px; }
   .search-input::placeholder{ color:var(--dim); }
-
-  /* interactive / highlighted body diagram, shared by the All tab and per-exercise muscle groups panel */
-  .body-diagram-row{ display:flex; gap:10px; margin:14px 16px 0; }
-  .body-diagram-svg{ width:100%; height:auto; display:block; }
-  .body-diagram-labels{ display:flex; justify-content:space-around; font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:0.06em; padding:6px 16px 0; }
-  .body-region{ cursor:pointer; transition:fill .15s ease; }
-  .exec-icon-wrap{ display:flex; align-items:center; justify-content:center; padding:34px 0; }
-  .exec-icon-wrap svg{ color:var(--ink); }
-  .thumb svg{ color:var(--dim); }
 </style>
 </head>
 <body>
@@ -395,10 +400,10 @@
     </div>
   </header>
   <div class="day-toggle">
-    <button class="day-btn active" data-day="A" onclick="setDay('A')">Full Body A</button>
+    <button class="day-btn active" data-day="all" onclick="setDay('all')">All</button>
+    <button class="day-btn" data-day="A" onclick="setDay('A')">Full Body A</button>
     <button class="day-btn" data-day="B" onclick="setDay('B')">Full Body B</button>
     <button class="day-btn" data-day="optional" onclick="setDay('optional')">Optional</button>
-    <button class="day-btn" data-day="all" onclick="setDay('all')">All</button>
   </div>
   <div class="section-head" id="hubSectionHead" style="display:none;">
     <h2>Optional add-ins</h2>
@@ -407,24 +412,10 @@
   <div class="list" id="exerciseList"></div>
 
   <div id="allTabWrap" style="display:none;">
-    <div class="subtab-row">
-      <button class="subtab-btn active" data-subview="list" onclick="setAllSubView('list')">List</button>
-      <button class="subtab-btn" data-subview="diagram" onclick="setAllSubView('diagram')">Diagram</button>
+    <div class="all-search-row">
+      <input type="text" class="search-input" id="allSearchInput" placeholder="Search exercises by name" oninput="onAllSearchInput(this.value)">
     </div>
-    <div id="allListView">
-      <div class="all-search-row">
-        <input type="text" class="search-input" id="allSearchInput" placeholder="Search exercises by name" oninput="onAllSearchInput(this.value)">
-      </div>
-      <div class="list" id="allListResults"></div>
-    </div>
-    <div id="allDiagramView" style="display:none;">
-      <div class="body-diagram-row">
-        <div class="exec-panel" id="bodyFrontPanel"></div>
-        <div class="exec-panel" id="bodyBackPanel"></div>
-      </div>
-      <div class="body-diagram-labels"><span>Front</span><span>Back</span></div>
-      <div id="allDiagramResults"></div>
-    </div>
+    <div class="list" id="allListResults"></div>
   </div>
 </div>
 
@@ -436,7 +427,7 @@
       <div class="ex-name" id="detailName"></div>
       <div class="ex-equip" id="detailEquip"></div>
     </div>
-    <button class="info-btn" onclick="openModal()">i</button>
+    <button class="info-btn" onclick="openModal()">Info</button>
   </div>
 
   <div class="variant-row" id="variantRow" style="display:none;"></div>
@@ -526,16 +517,12 @@
     </div>
     <div class="tabs">
       <div class="tab active" data-tab="execution" onclick="switchTab('execution')">Execution</div>
-      <div class="tab" data-tab="muscles" onclick="switchTab('muscles')">Muscle groups</div>
       <div class="tab" data-tab="guide" onclick="switchTab('guide')">Guide</div>
       <div class="tab" data-tab="history" onclick="switchTab('history')">History</div>
     </div>
     <div class="tab-body" id="tabBody">
       <div class="tab-panel active" data-panel="execution">
         <div class="exec-seq" id="movementSvg"></div>
-      </div>
-      <div class="tab-panel" data-panel="muscles">
-        <div class="exec-seq" id="muscleImg"></div>
       </div>
       <div class="tab-panel" data-panel="guide">
         <p id="cueText"></p>
@@ -613,9 +600,9 @@ const WEAK_SIDE = 'right';
 const STRONG_SIDE = 'left';
 
 const EXERCISES = [
-  { id:'chestPress', day:'A', name:'Bench Press (Barbell)', equip:'Flat, incline, or decline bench with a barbell or paired dumbbells, single dumbbell for the unilateral version',
+  { id:'chestPress', day:'A', name:'Bench Press (Barbell)', equip:'Flat or incline bench with a barbell or paired dumbbells, single dumbbell for the unilateral version',
     variants:[
-      {key:'angle', label:'Angle', options:[{value:'flat',label:'Flat'},{value:'incline',label:'Incline'},{value:'decline',label:'Decline'}], default:'flat'},
+      {key:'angle', label:'Angle', options:[{value:'flat',label:'Flat'},{value:'incline',label:'Incline'}], default:'flat'},
       {key:'mode', label:'Mode', options:[{value:'bilateral',label:'Bilateral'},{value:'unilateral',label:'Unilateral'}], default:'bilateral'}
     ],
     modeKey:'mode',
@@ -624,12 +611,11 @@ const EXERCISES = [
       const mode = (v && v.mode) || 'bilateral';
       let cue = "Press straight up, don't flare elbows past 75 degrees. Full stretch at the bottom.";
       if(angle === 'incline') cue += " Incline shifts the emphasis toward your upper chest.";
-      else if(angle === 'decline') cue += " Decline shifts the emphasis toward your lower chest.";
       if(mode === 'unilateral') cue += " One arm at a time with a single dumbbell, brace your core hard, the offset load will try to twist your torso, don't let it. Right arm first, since your left is the stronger side.";
       return cue;
     },
     muscles:{primary:['chest'], secondary:['frontDelt','triceps']},
-    notes:{mistakes:["Bouncing the bar off your chest instead of a controlled touch and press, this isn't just sloppy, it removes tension at the exact point your chest should be working hardest","Flaring elbows to a full 90 degrees from your torso, keep them closer to 45 to 75 degrees, full flare stresses the front of the shoulder joint directly","Lifting your hips off the bench to help drive the weight up, a sign the weight is beyond your controlled strength right now","Gripping too wide, which shortens your range of motion and can shift stress toward the shoulder rather than the chest"], angles:["Flat targets the middle of the chest and is the default for raw pressing strength","Incline, around 30 degrees, recruits the upper chest fibers near the collarbone more effectively, steeper than that and the front delt starts taking over","Decline shifts emphasis toward the lower chest","Since your goal is overall upper body fullness rather than one region, rotating which angle you use across weeks, rather than living on flat only, builds more complete chest development over time"]},
+    notes:{mistakes:["Bouncing the bar off your chest instead of a controlled touch and press, this isn't just sloppy, it removes tension at the exact point your chest should be working hardest","Flaring elbows to a full 90 degrees from your torso, keep them closer to 45 to 75 degrees, full flare stresses the front of the shoulder joint directly","Lifting your hips off the bench to help drive the weight up, a sign the weight is beyond your controlled strength right now","Gripping too wide, which shortens your range of motion and can shift stress toward the shoulder rather than the chest"], angles:["Flat targets the middle of the chest and is the default for raw pressing strength","Incline, around 30 degrees, recruits the upper chest fibers near the collarbone more effectively, steeper than that and the front delt starts taking over","Since your goal is overall upper body fullness rather than one region, rotating between flat and incline across weeks, rather than living on flat only, builds more complete chest development over time"]},
     image:'bench-press', movement:'chestPress', defaultSets:[{reps:10,weight:20},{reps:10,weight:20},{reps:10,weight:20},{reps:10,weight:20}] },
 
   { id:'assistedPullUp', day:'A', name:'Assisted Pull-Up', equip:'Assisted pull-up and dip machine',
@@ -751,7 +737,7 @@ const EXERCISES = [
   { id:'flatDumbbellPress', day:'both', optional:true, name:'Flat Dumbbell Press', equip:'Flat bench, pair of dumbbells',
     cue:"Press the dumbbells up and slightly in until they nearly touch at the top, lower until your upper arms are just below parallel to the floor.",
     muscles:{primary:['chest'], secondary:['frontDelt','triceps']},
-    notes:{mistakes:["Letting the dumbbells drift too far apart at the bottom, which overstretches the shoulder joint, especially risky since dumbbells allow more range than a bar and don't stop you the way a bar naturally does","Not controlling the lowering phase, this matters more here than on barbell work since nothing is guiding the path for you","Pressing in an arc that brings the dumbbells together at the top, this should stay a straight vertical path, bringing them together turns it into a hybrid press-fly that shortchanges both"], angles:["Same flat, incline, decline logic as the barbell version, dumbbells simply allow a deeper stretch at the bottom of each rep, which is part of why they're worth including even if you also bench with a bar"]},
+    notes:{mistakes:["Letting the dumbbells drift too far apart at the bottom, which overstretches the shoulder joint, especially risky since dumbbells allow more range than a bar and don't stop you the way a bar naturally does","Not controlling the lowering phase, this matters more here than on barbell work since nothing is guiding the path for you","Pressing in an arc that brings the dumbbells together at the top, this should stay a straight vertical path, bringing them together turns it into a hybrid press-fly that shortchanges both"], angles:["Same flat and incline logic as the barbell version, dumbbells simply allow a deeper stretch at the bottom of each rep, which is part of why they're worth including even if you also bench with a bar"]},
     image:'flat-dumbbell-press', icon:'dumbbell', defaultSets:[{reps:10,weight:12},{reps:10,weight:12},{reps:10,weight:12}] },
 
   { id:'flatDumbbellFly', day:'both', optional:true, name:'Flat Dumbbell Fly', equip:'Flat bench, pair of dumbbells',
@@ -845,15 +831,13 @@ const EXERCISES = [
     image:'band-rotator-cuff-core', icon:'band', defaultSets:[{reps:15,weight:0},{reps:15,weight:0}] },
 ];
 
-let currentDay = 'A';
+let currentDay = 'all';
 let currentExerciseId = null;
 let sets = [];
 let history = {}; // { exerciseId: [ {date, sets:[...]} , ... ] }
 let currentVariants = {}; // active selector values (height, angle, mode...) for the open exercise
 
-let allSubView = 'list';
 let allSearchQuery = '';
-let selectedMuscleRegion = null;
 
 /* ---------- STORAGE ---------- */
 
@@ -895,23 +879,9 @@ function persistHistory(){
 }
 
 /* ---------- MINI ICON (hub thumbnail) ---------- */
-/* Exercises added without a curated photo (see ICON_SHAPES) use a small hand-built
-   inline SVG glyph here and in the Execution tab instead of a missing image file. */
-
-const ICON_SHAPES = {
-  dumbbell: `<line x1="10" y1="30" x2="34" y2="12"/><circle cx="9" cy="31" r="6"/><circle cx="35" cy="11" r="6"/>`,
-  barbell: `<line x1="6" y1="22" x2="38" y2="22"/><rect x="2" y="13" width="7" height="18" rx="2"/><rect x="35" y="13" width="7" height="18" rx="2"/>`,
-  machine: `<rect x="9" y="5" width="26" height="34" rx="3"/><line x1="14" y1="13" x2="30" y2="13"/><line x1="14" y1="19" x2="30" y2="19"/><line x1="14" y1="25" x2="30" y2="25"/><line x1="14" y1="31" x2="30" y2="31"/>`,
-  bodyweight: `<circle cx="10" cy="11" r="4"/><line x1="13" y1="14" x2="35" y2="29"/><line x1="18" y1="18" x2="11" y2="30"/><line x1="29" y1="25" x2="36" y2="33"/>`,
-  band: `<circle cx="6" cy="22" r="3"/><path d="M9 22 Q16 8 22 22 T38 22" fill="none"/><circle cx="38" cy="22" r="3"/>`
-};
-
-function iconSvg(key, size){
-  return `<svg viewBox="0 0 44 44" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${ICON_SHAPES[key] || ''}</svg>`;
-}
 
 function miniIcon(exercise){
-  if(exercise.icon) return iconSvg(exercise.icon, 44);
+  if(exercise.image) return `<img src="images/${exercise.image}.png" alt="" loading="lazy">`;
   return `<img src="img/thumb-${exercise.movement}.png" alt="" loading="lazy">`;
 }
 
@@ -979,7 +949,7 @@ function renderHub(){
     list.style.display = 'none';
     head.style.display = 'none';
     allWrap.style.display = 'block';
-    setAllSubView(allSubView);
+    renderAllList();
     return;
   }
   allWrap.style.display = 'none';
@@ -996,16 +966,7 @@ function renderHub(){
   }
 }
 
-/* ---------- ALL TAB: searchable list + interactive muscle diagram ---------- */
-
-function setAllSubView(view){
-  allSubView = view;
-  document.querySelectorAll('.subtab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.subview === view));
-  document.getElementById('allListView').style.display = view === 'list' ? 'block' : 'none';
-  document.getElementById('allDiagramView').style.display = view === 'diagram' ? 'block' : 'none';
-  if(view === 'diagram') renderAllDiagram();
-  else renderAllList();
-}
+/* ---------- ALL TAB: searchable list ---------- */
 
 function onAllSearchInput(val){
   allSearchQuery = val.trim().toLowerCase();
@@ -1016,34 +977,6 @@ function renderAllList(){
   const wrap = document.getElementById('allListResults');
   const items = EXERCISES.filter(e => e.name.toLowerCase().includes(allSearchQuery));
   wrap.innerHTML = items.length ? items.map(cardHtml).join('') : `<div class="empty">No exercises match that search.</div>`;
-}
-
-function selectMuscleRegion(key){
-  selectedMuscleRegion = (selectedMuscleRegion === key) ? null : key;
-  renderAllDiagram();
-}
-
-function renderAllDiagram(){
-  const state = { selected: selectedMuscleRegion };
-  document.getElementById('bodyFrontPanel').innerHTML = renderBodyPanel('front', 'interactive', state);
-  document.getElementById('bodyBackPanel').innerHTML = renderBodyPanel('back', 'interactive', state);
-  renderMuscleFilterResults();
-}
-
-function renderMuscleFilterResults(){
-  const wrap = document.getElementById('allDiagramResults');
-  if(!selectedMuscleRegion){
-    wrap.innerHTML = `<div class="empty">Tap a highlighted area above to see exercises that target it.</div>`;
-    return;
-  }
-  const label = MUSCLE_LABELS[selectedMuscleRegion];
-  const primary = EXERCISES.filter(e => e.muscles.primary.includes(selectedMuscleRegion));
-  const secondary = EXERCISES.filter(e => !e.muscles.primary.includes(selectedMuscleRegion) && e.muscles.secondary.includes(selectedMuscleRegion));
-  let html = `<div class="section-head"><h2>Primary: ${label}</h2></div>`;
-  html += `<div class="list">${primary.length ? primary.map(cardHtml).join('') : '<div class="empty">No exercises primarily target this.</div>'}</div>`;
-  html += `<div class="section-head"><h2>Secondary: ${label}</h2></div>`;
-  html += `<div class="list">${secondary.length ? secondary.map(cardHtml).join('') : '<div class="empty">No exercises use this as a secondary target.</div>'}</div>`;
-  wrap.innerHTML = html;
 }
 
 /* ---------- DETAIL VIEW ---------- */
@@ -1080,7 +1013,6 @@ function openDetail(id){
   renderVariantRow();
   renderSets();
   renderMovement(e);
-  renderMuscleImage(e);
   renderModalHistory(id);
   renderNotes(e.notes);
 
@@ -1857,8 +1789,6 @@ function renderMovement(e){
         <img src="images/${e.image}.png" alt="Execution diagram" loading="lazy">
       </div>
     `;
-  } else if(e.icon){
-    wrap.innerHTML = `<div class="exec-panel exec-icon-wrap">${iconSvg(e.icon, 96)}</div>`;
   } else {
     wrap.innerHTML = `
       <div class="exec-panel">
@@ -1866,91 +1796,6 @@ function renderMovement(e){
       </div>
     `;
   }
-}
-
-function renderMuscleImage(e){
-  const wrap = document.getElementById('muscleImg');
-  if(e.icon){
-    const state = { primary: e.muscles.primary, secondary: e.muscles.secondary };
-    wrap.innerHTML = `
-      <div class="exec-panel">${renderBodyPanel('front', 'highlight', state)}</div>
-      <div class="exec-panel">${renderBodyPanel('back', 'highlight', state)}</div>
-    `;
-  } else {
-    wrap.innerHTML = `
-      <div class="exec-panel">
-        <img src="img/muscles-${e.movement}.png" alt="Muscle groups worked" loading="lazy">
-      </div>
-    `;
-  }
-}
-
-/* ---------- SHARED BODY DIAGRAM (All-tab browser + per-exercise muscle highlight) ---------- */
-
-const MUSCLE_LABELS = {
-  chest:'Chest', frontDelt:'Front delts', triceps:'Triceps', lats:'Lats', upperBack:'Upper back',
-  biceps:'Biceps', rearDelt:'Rear delts', quads:'Quads', glutes:'Glutes', hamstrings:'Hamstrings',
-  calves:'Calves', abs:'Abs'
-};
-
-const BODY_REGIONS = {
-  front: [
-    { key:'frontDelt', shapes:[{t:'ellipse',cx:28,cy:54,rx:10,ry:10},{t:'ellipse',cx:92,cy:54,rx:10,ry:10}] },
-    { key:'chest', shapes:[{t:'rect',x:40,y:50,w:40,h:32,rx:8}] },
-    { key:'biceps', shapes:[{t:'rect',x:12,y:64,w:12,h:34,rx:6},{t:'rect',x:96,y:64,w:12,h:34,rx:6}] },
-    { key:'abs', shapes:[{t:'rect',x:44,y:86,w:32,h:46,rx:8}] },
-    { key:'quads', shapes:[{t:'rect',x:31,y:152,w:24,h:58,rx:10},{t:'rect',x:65,y:152,w:24,h:58,rx:10}] },
-  ],
-  back: [
-    { key:'rearDelt', shapes:[{t:'ellipse',cx:28,cy:54,rx:10,ry:10},{t:'ellipse',cx:92,cy:54,rx:10,ry:10}] },
-    { key:'upperBack', shapes:[{t:'rect',x:40,y:50,w:40,h:28,rx:8}] },
-    { key:'lats', shapes:[{t:'rect',x:34,y:78,w:18,h:34,rx:8},{t:'rect',x:68,y:78,w:18,h:34,rx:8}] },
-    { key:'triceps', shapes:[{t:'rect',x:12,y:64,w:12,h:34,rx:6},{t:'rect',x:96,y:64,w:12,h:34,rx:6}] },
-    { key:'glutes', shapes:[{t:'rect',x:33,y:142,w:22,h:26,rx:10},{t:'rect',x:65,y:142,w:22,h:26,rx:10}] },
-    { key:'hamstrings', shapes:[{t:'rect',x:31,y:168,w:24,h:48,rx:10},{t:'rect',x:65,y:168,w:24,h:48,rx:10}] },
-    { key:'calves', shapes:[{t:'rect',x:32,y:220,w:22,h:38,rx:10},{t:'rect',x:66,y:220,w:22,h:38,rx:10}] },
-  ]
-};
-
-function bodyOutlineSvg(){
-  return `
-    <circle cx="60" cy="22" r="16"/>
-    <rect x="54" y="35" width="12" height="12"/>
-    <rect x="35" y="44" width="50" height="100" rx="20"/>
-    <rect x="10" y="50" width="14" height="90" rx="7"/>
-    <rect x="96" y="50" width="14" height="90" rx="7"/>
-    <rect x="30" y="140" width="26" height="118" rx="13"/>
-    <rect x="64" y="140" width="26" height="118" rx="13"/>
-  `;
-}
-
-function shapeSvg(shape, extraAttrs){
-  if(shape.t === 'ellipse') return `<ellipse cx="${shape.cx}" cy="${shape.cy}" rx="${shape.rx}" ry="${shape.ry}" ${extraAttrs}/>`;
-  return `<rect x="${shape.x}" y="${shape.y}" width="${shape.w}" height="${shape.h}" rx="${shape.rx}" ${extraAttrs}/>`;
-}
-
-// mode 'interactive': state = {selected}, tappable, used by the All tab diagram browser.
-// mode 'highlight': state = {primary:[...], secondary:[...]}, static, used per-exercise.
-function renderBodyPanel(view, mode, state){
-  const regions = BODY_REGIONS[view];
-  const regionMarkup = regions.map(r => {
-    let fill, extra = '';
-    if(mode === 'interactive'){
-      fill = state.selected === r.key ? 'var(--accent)' : 'var(--idle)';
-      extra = `class="body-region" data-region="${r.key}" onclick="selectMuscleRegion('${r.key}')"`;
-    } else {
-      fill = state.primary.includes(r.key) ? 'var(--accent)'
-        : state.secondary.includes(r.key) ? 'var(--accent-secondary)'
-        : 'var(--idle)';
-    }
-    const title = `<title>${MUSCLE_LABELS[r.key]}</title>`;
-    return `<g ${extra}>${title}${r.shapes.map(s => shapeSvg(s, `fill="${fill}"`)).join('')}</g>`;
-  }).join('');
-  return `
-    <svg viewBox="0 0 120 262" class="body-diagram-svg">
-      <g fill="#0f0f11" stroke="var(--card-line)" stroke-width="2">${bodyOutlineSvg()}</g>
-      ${regionMarkup}
-    </svg>`;
 }
 
 /* ---------- INIT ---------- */
