@@ -381,8 +381,8 @@
   .search-input::placeholder{ color:var(--dim); }
 
   /* All tab list: two-column grid, scoped so the A/B/C hub list is untouched */
-  .list.grid-2col{ display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; }
-  .grid-2col .ex-card{ gap:8px; padding:10px; }
+  .list.grid-2col{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; }
+  .grid-2col .ex-card{ gap:8px; padding:10px; min-width:0; }
   .grid-2col .thumb{ width:40px; height:40px; }
   .grid-2col .thumb img{ width:34px; height:34px; }
   .grid-2col .chevron{ display:none; }
