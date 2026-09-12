@@ -659,7 +659,7 @@ const EXERCISES = [
     notes:{mistakes:["Lower back rounding off the pad at the bottom, a sign you've gone deeper than your hips can control safely","Locking your knees out fully at the top puts the stress on the joint instead of the muscle","Feet too low on the platform overloads the knees, too high overloads the lower back"], angles:["Feet placed higher and wider on the platform shifts more work to glutes and hamstrings","Feet placed lower and closer together shifts more work to the quads, which is the setup you want given your goal here"]},
     image:'leg-press', movement:'legPress', defaultSets:[{reps:13,weight:60},{reps:13,weight:60}] },
 
-  { id:'standingCablePress', day:'A', name:'Standing Single-Arm Cable Press', equip:'Cable tower, chest-height pulley, single handle, standing', unilateral:true,
+  { id:'standingCablePress', day:'both', optional:true, name:'Standing Single-Arm Cable Press', equip:'Cable tower, chest-height pulley, single handle, standing', unilateral:true,
     cue:"Stand side-on to the tower, press the handle straight out from your chest without letting your torso rotate. Right arm first, since your left is the stronger side.",
     muscles:{primary:['chest'], secondary:['frontDelt','triceps','abs']},
     notes:{mistakes:["Rotating your torso to help finish the press, the resistance should be fought with your core staying square, not a twist","Letting the shoulder round forward at the start instead of keeping it set back and down","Standing too close to the tower means not enough tension at the start of the press"], angles:["Pulley at chest height keeps the pressing line matching a standard chest press","Standing further from the tower increases the anti-rotation demand on your core, useful once the base movement feels easy"]},
@@ -671,7 +671,7 @@ const EXERCISES = [
     notes:{mistakes:["Staying too upright shifts the work almost entirely onto triceps, missing the chest emphasis you want","Lowering too fast or too deep can strain the front of the shoulder, control the descent","Flaring elbows out wide instead of keeping them tucked toward your body puts more stress on the shoulder joint"], angles:["Leaning your torso forward biases chest over triceps, which is what you're after here","Staying upright with elbows tucked close shifts the same movement toward triceps instead, useful to know if you ever want a triceps-focused variation"]},
     image:'assisted-dip', movement:'dip', defaultSets:[{reps:9,weight:25},{reps:9,weight:25},{reps:9,weight:25}] },
 
-  { id:'pecFly', day:'A', name:'Pec Fly', equip:'Pec deck machine',
+  { id:'pecFly', day:'both', optional:true, name:'Pec Fly', equip:'Pec deck machine',
     cue:"Slight bend in elbow throughout, think about hugging a tree. Slow on the way back.",
     muscles:{primary:['chest'], secondary:['frontDelt']},
     notes:{mistakes:["This is the most common failure point on this machine, if you only feel your shoulders, it's almost always the seat height, not something you're doing wrong technique-wise","Letting your elbows travel behind your torso at the bottom overstretches the front of the shoulder joint","Using momentum to slam the pads together instead of a slow, controlled squeeze"], angles:["The parallel rule: seated normally with handles gripped, your upper arms should be parallel to the floor, elbows roughly level with your shoulders, not above or below","If elbows sit above your shoulders the seat is too low, if they sit below it's too high, this machine has one correct position rather than several angle options"]},
@@ -743,7 +743,7 @@ const EXERCISES = [
     notes:{mistakes:["Swinging the torso or heaving with the shoulders instead of isolating the bicep, if your back is doing the work, the weight is too heavy","Letting the elbow drift forward away from your torso as fatigue sets in, this is usually the first thing to go on a later set","Rushing the lowering phase, a slow 2 to 3 second descent is where a large share of the actual growth stimulus happens, more than the lift itself"], angles:["Standing with elbows pinned at your sides is the default setup","Standing with your back against a wall removes the ability to swing entirely, useful specifically on sets where you notice momentum creeping in"]},
     image:'standing-bicep-curl', movement:'dumbbellCurl', defaultSets:[{reps:11,weight:10},{reps:11,weight:10},{reps:11,weight:10}] },
 
-  { id:'lateralRaise', day:'both', optional:true, name:'Lateral Raise', equip:'Pair of dumbbells, standing',
+  { id:'lateralRaise', day:'B', name:'Lateral Raise', equip:'Pair of dumbbells, standing',
     cue:"Raise both arms out to the sides to shoulder height, leading with your elbows rather than your hands. Slight bend in the elbow throughout.",
     muscles:{primary:['frontDelt'], secondary:[]},
     notes:{mistakes:["Using momentum to swing the weights up instead of a controlled raise, this is a small muscle group, light weight is correct here","Raising past shoulder height turns it into a shrug and shifts the work onto your traps","Leading with the hands instead of the elbows changes the angle of pull on the shoulder"], angles:["Arms raised straight out to the sides is the standard version","Raising slightly in front of your body shifts a bit more emphasis onto the front delt, useful variety later"]},
@@ -821,7 +821,7 @@ const EXERCISES = [
     notes:{mistakes:["Hips sagging toward the floor, a sign your core has fatigued before your chest and arms have, worth stopping the set there rather than continuing with poor form","Flaring elbows to a full 90 degrees rather than keeping them closer to 45, same shoulder-stress logic as the bench press","Not achieving full range, cutting the descent short before your chest gets close to the floor"], angles:["This is your baseline, mid-chest and triceps roughly evenly split"]},
     image:'pushups-standard', icon:'bodyweight', defaultSets:[{reps:12,weight:0},{reps:12,weight:0},{reps:12,weight:0}] },
 
-  { id:'pushUpIncline', day:'B', name:'Push-Up (Incline)', equip:'Bench or sturdy elevated surface',
+  { id:'pushUpIncline', day:'both', optional:true, name:'Push-Up (Incline)', equip:'Bench or sturdy elevated surface',
     cue:"Hands on the elevated surface, body straight from head to heels, lower your chest to the edge and press back up.",
     muscles:{primary:['chest'], secondary:['frontDelt','triceps']},
     notes:{mistakes:["Same hip sag and elbow flare issues as standard push-ups","Choosing too low an incline if the goal is genuinely reducing difficulty, a higher hand placement (a bench or higher surface) meaningfully reduces the load, a barely-elevated surface doesn't actually make it easier"], angles:["The steeper the incline (hands higher), the easier the movement and the more it shifts toward the front delt and upper chest rather than the mid chest, useful as an easier regression if standard push-ups are still difficult, not really a chest-building variation in its own right"]},
@@ -833,13 +833,13 @@ const EXERCISES = [
     notes:{mistakes:["Letting your hips sag as your feet are elevated, the forward lean this creates increases demand on your chest, shoulders, and triceps, while your core has to work harder to stop your hips from collapsing, so fatigue here shows up as sagging faster than it would on a standard push-up","Not achieving a real stretch at the bottom, the whole benefit of this variation is the deeper stretch across the upper chest that the elevated foot position creates"], angles:["Feet elevated on a bench or step, the higher the elevation, the more the emphasis shifts toward the upper chest fibers near the collarbone, the same portion of the chest that flat pressing movements tend to undertrain, which makes this a genuinely useful addition to your library rather than just a harder version of a standard push-up"]},
     image:'pushup-decline', icon:'bodyweight', defaultSets:[{reps:10,weight:0},{reps:10,weight:0},{reps:10,weight:0}] },
 
-  { id:'pushUpDiamond', day:'B', name:'Push-Up (Diamond)', equip:'Floor mat',
+  { id:'pushUpDiamond', day:'C', name:'Push-Up (Diamond)', equip:'Floor mat',
     cue:"Hands together under your chest, thumbs and index fingers forming a diamond, lower your chest to your hands and press back up.",
     muscles:{primary:['triceps'], secondary:['chest','frontDelt']},
     notes:{mistakes:["Letting the elbows flare out wide, which defeats the purpose of this variation entirely, the hands need to stay close together and the elbows need to travel back close to your torso, not out to the sides, to keep the emphasis on the triceps rather than sharing it with the chest and shoulders","Sagging hips, same core-fatigue signal as the other variants"], angles:["Hand placement close together directly under the center of the chest, forming a diamond shape with your thumbs and index fingers touching, is what shifts this from a chest movement into a genuinely triceps-dominant one, keeping elbows tucked close throughout the movement matters more here than in any other push-up variant"]},
     image:'pushup-diamond', icon:'bodyweight', defaultSets:[{reps:8,weight:0},{reps:8,weight:0},{reps:8,weight:0}] },
 
-  { id:'bandRotatorCuffCore', day:'both', optional:true, name:'Band Rotator Cuff and Core Finisher', equip:'Light resistance band anchored at roughly elbow height',
+  { id:'bandRotatorCuffCore', day:'A', name:'Band Rotator Cuff and Core Finisher', equip:'Light resistance band anchored at roughly elbow height',
     cue:"Elbow pinned at your side, rotate your forearm outward against the band, then back to center under control. Finish each set with a short anti-rotation core hold in the same stance.",
     muscles:{primary:['rearDelt'], secondary:['abs']},
     notes:{mistakes:["Letting the elbow drift away from your side turns this into a shoulder movement instead of isolating the rotator cuff","Using a band heavy enough that you have to use your shoulder or torso to help, this should stay light and controlled throughout","Rushing the core hold at the end instead of bracing properly for the full time"], angles:["Band anchored at roughly elbow height keeps the resistance angle correct for external rotation","Standing side-on to the anchor doubles as the setup for the core hold portion of the finisher, no need to reposition between the two"]},
