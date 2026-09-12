@@ -403,6 +403,7 @@
     <button class="day-btn active" data-day="all" onclick="setDay('all')">All</button>
     <button class="day-btn" data-day="A" onclick="setDay('A')">Full Body A</button>
     <button class="day-btn" data-day="B" onclick="setDay('B')">Full Body B</button>
+    <button class="day-btn" data-day="C" onclick="setDay('C')">Full Body C</button>
     <button class="day-btn" data-day="optional" onclick="setDay('optional')">Optional</button>
   </div>
   <div class="section-head" id="hubSectionHead" style="display:none;">
@@ -600,7 +601,7 @@ const WEAK_SIDE = 'right';
 const STRONG_SIDE = 'left';
 
 const EXERCISES = [
-  { id:'chestPress', day:'A', name:'Bench Press (Barbell)', equip:'Flat or incline bench with a barbell or paired dumbbells, single dumbbell for the unilateral version',
+  { id:'chestPress', day:'C', name:'Bench Press (Barbell)', equip:'Flat or incline bench with a barbell or paired dumbbells, single dumbbell for the unilateral version',
     variants:[
       {key:'angle', label:'Angle', options:[{value:'flat',label:'Flat'},{value:'incline',label:'Incline'}], default:'flat'},
       {key:'mode', label:'Mode', options:[{value:'bilateral',label:'Bilateral'},{value:'unilateral',label:'Unilateral'}], default:'bilateral'}
@@ -621,8 +622,14 @@ const EXERCISES = [
   { id:'assistedPullUp', day:'A', name:'Assisted Pull-Up', equip:'Assisted pull-up and dip machine',
     cue:"Set assistance so the last 2 reps feel hard, not impossible. Pull your chest to the bar, lead with the elbows down and back.",
     muscles:{primary:['lats'], secondary:['upperBack','biceps','rearDelt']},
-    notes:{mistakes:["Shrugging your shoulders up toward your ears takes tension off your lats and puts it on your traps","Using momentum or bouncing at the bottom instead of a controlled dead hang start","Grip too wide feels stronger but shortens your range of motion, closer to shoulder width usually works better"], angles:["More assistance weight on the stack means less of your bodyweight you're lifting, this machine's numbers work in reverse from most others","If your gym's machine has a chin-up handle option (palms facing you), that shifts more work onto biceps, useful for variety later"]},
+    notes:{mistakes:["Shrugging your shoulders up toward your ears takes tension off your lats and puts it on your traps","Using momentum or bouncing at the bottom instead of a controlled dead hang start","Grip too wide feels stronger but shortens your range of motion, closer to shoulder width usually works better"], angles:["More assistance weight on the stack means less of your bodyweight you're lifting, this machine's numbers work in reverse from most others","Switching to an underhand, palms-facing-you grip shifts more work onto biceps, that's the Assisted Chin-Up, worth alternating with this one across sessions"]},
     image:'assisted-pullup', movement:'assistedPullUp', defaultSets:[{reps:8,weight:20},{reps:8,weight:20},{reps:8,weight:20}] },
+
+  { id:'assistedChinUp', day:'C', name:'Assisted Chin-Up', equip:'Assisted pull-up and dip machine, underhand grip',
+    cue:"Same machine and setup as the Assisted Pull-Up, but grip the bar underhand, palms facing you. This shifts meaningfully more work onto the biceps compared to the overhand grip, while still working the lats.",
+    muscles:{primary:['biceps','lats'], secondary:['upperBack']},
+    notes:{mistakes:["Turning it into a shrug, pulling with the traps instead of driving the elbows down and back","Using too little assistance and swinging to complete reps, same rule as the pull-up, the last couple reps should feel hard, not impossible","Not achieving a full hang at the bottom between reps, cutting the stretch short reduces the actual range you're training through"], angles:["The underhand grip itself is the whole variable here, no height or angle adjustment needed","Compared to the overhand Assisted Pull-Up, this grip meaningfully increases bicep involvement while still training the lats, worth alternating between the two across sessions rather than picking one permanently, since they build slightly different things"]},
+    image:'assisted-chin-up', defaultSets:[{reps:8,weight:20},{reps:8,weight:20},{reps:8,weight:20}] },
 
   { id:'singleArmRow', day:'A', name:'Standing Cable Row', equip:'Cable crossover station, adjustable pulley', unilateral:true,
     variants:[{key:'height', label:'Pulley height', options:[{value:'low',label:'Low'},{value:'mid',label:'Mid'},{value:'high',label:'High'}], default:'low'}],
@@ -698,19 +705,25 @@ const EXERCISES = [
     notes:{mistakes:["Hips or shoulders rotating toward the cable, the entire point is that nothing moves except your arms","Holding your breath through the hold instead of breathing steadily while staying braced","Standing too close to the anchor, not enough distance means not enough resistance to actually challenge the anti-rotation"], angles:["Pulley at chest height is standard and keeps the resisting force in a straight line through your core"]},
     image:'pallof-press', movement:'pallof', defaultSets:[{reps:12,weight:10},{reps:12,weight:10}] },
 
-  { id:'plank', day:'B', name:'Plank, Alternating with Side Plank', equip:'Floor mat',
+  { id:'abCrunchMachine', day:'C', name:'Ab Crunch Machine', equip:'Seated ab crunch machine',
+    cue:"Squeeze the handles while curling your torso forward and down, the movement should come from your abs contracting, not your arms pulling. Controlled release back up, don't let the weight stack drop.",
+    muscles:{primary:['abs'], secondary:[]},
+    notes:{mistakes:["Pulling with your arms instead of curling with your abs, the handles are there to hold, not to generate the movement, if your arms are doing the work, drop the weight","Using momentum to rock the weight stack instead of a controlled curl and release","Not achieving a real curl through the spine, some people just nod the head forward without the torso actually flexing"], angles:["Seat height should place the pivot point of the machine roughly in line with your hip crease, too high or too low changes where the resistance actually loads through the crunch"]},
+    image:'ab-crunch-machine', defaultSets:[{reps:15,weight:20},{reps:15,weight:20},{reps:15,weight:20}] },
+
+  { id:'plank', day:'A', name:'Plank, Alternating with Side Plank', equip:'Floor mat',
     cue:"Straight line from shoulders to heels, no sagging hips. Alternate a front plank with a side plank on each side.",
     muscles:{primary:['abs'], secondary:[]},
     notes:{mistakes:["Hips sagging toward the floor as fatigue sets in, this is usually the first sign it's time to stop the set","Hips piked up too high reduces how much your core actually has to work","Holding your breath instead of breathing steadily through the hold"], angles:["Elbows directly under your shoulders, not out in front, keeps the load on your core rather than your shoulders","For the side plank, stacking hips and feet directly on top of each other keeps the obliques doing the work rather than your legs"]},
     image:'plank', movement:'plank', defaultSets:[{reps:0,weight:0},{reps:0,weight:0},{reps:0,weight:0}] },
 
-  { id:'calfRaise', day:'both', optional:true, name:'Standing Calf Raise', equip:'Standing calf raise machine',
+  { id:'calfRaise', day:'A', name:'Standing Calf Raise', equip:'Standing calf raise machine',
     cue:"Kept light on purpose since skating already works your calves often. Full stretch at the bottom, pause at the top, controlled tempo, not bouncy.",
     muscles:{primary:['calves'], secondary:[]},
     notes:{mistakes:["Bouncing at the bottom instead of a controlled stretch, this is a small muscle group that responds better to control than speed","Cutting the range short, both the stretch at the bottom and the pause at the top matter here","Letting your knees bend to help push, keep them soft but essentially straight throughout"], angles:["Toes pointed straight ahead is the standard setup and works the calf as a whole","Toes turned slightly inward or outward shifts emphasis between the inner and outer calf muscle, not necessary right now but useful variety later","Keeping the knee straight here is what lets the gastrocnemius, the visible upper calf muscle, do most of the work. Seated Calf Raise bends the knee and shifts the same movement onto the soleus underneath it, worth doing both across the week"]},
     image:'standing-calve-raises', movement:'calfRaise', defaultSets:[{reps:15,weight:10},{reps:15,weight:10}] },
 
-  { id:'seatedCalfRaise', day:'both', optional:true, name:'Seated Calf Raise', equip:'Seated calf raise machine',
+  { id:'seatedCalfRaise', day:'B', name:'Seated Calf Raise', equip:'Seated calf raise machine',
     cue:"Sit with the pad resting just above your knees, drop your heels for a full stretch, then rise onto your toes and pause at the top. Controlled tempo, not bouncy.",
     muscles:{primary:['calves'], secondary:[]},
     notes:{mistakes:["Bouncing at the bottom instead of a controlled stretch and pause, same principle as standing calf raise, this is a small muscle group that responds better to control than speed","Cutting the range short at either end, both the stretch at the bottom and the pause at the top matter"], angles:["The key reason this exists as its own exercise rather than a variation of standing calf raise, bending the knee changes which calf muscle does most of the work","Standing calf raise, with the knee straight, emphasizes the larger gastrocnemius muscle","Seated calf raise, with the knee bent under a pad, takes the gastrocnemius mostly out of the movement and shifts emphasis onto the soleus underneath it, a muscle that barely gets worked when the knee is straight","Doing both across your week, rather than picking one, is genuinely the more complete approach for full calf development, not redundant"]},
@@ -740,37 +753,37 @@ const EXERCISES = [
     notes:{mistakes:["Letting the dumbbells drift too far apart at the bottom, which overstretches the shoulder joint, especially risky since dumbbells allow more range than a bar and don't stop you the way a bar naturally does","Not controlling the lowering phase, this matters more here than on barbell work since nothing is guiding the path for you","Pressing in an arc that brings the dumbbells together at the top, this should stay a straight vertical path, bringing them together turns it into a hybrid press-fly that shortchanges both"], angles:["Same flat and incline logic as the barbell version, dumbbells simply allow a deeper stretch at the bottom of each rep, which is part of why they're worth including even if you also bench with a bar"]},
     image:'flat-dumbbell-press', icon:'dumbbell', defaultSets:[{reps:10,weight:12},{reps:10,weight:12},{reps:10,weight:12}] },
 
-  { id:'flatDumbbellFly', day:'both', optional:true, name:'Flat Dumbbell Fly', equip:'Flat bench, pair of dumbbells',
+  { id:'flatDumbbellFly', day:'C', name:'Flat Dumbbell Fly', equip:'Flat bench, pair of dumbbells',
     cue:"Lie flat, arms slightly bent, lower the dumbbells out to the sides in a wide arc until you feel a stretch across your chest, then bring them back up over your chest in the same arc.",
     muscles:{primary:['chest'], secondary:['frontDelt']},
     notes:{mistakes:["Losing the slight, constant elbow bend and turning it into a press, the whole purpose of a fly is isolating the chest through a wide arc, not moving heavy load through the arms","Lowering past shoulder level, which strains the front of the shoulder capsule, the stretch should feel like it's in the chest, not the joint","Using momentum to swing back up instead of a slow, controlled squeeze at the top"], angles:["Keep this one flat","An incline version exists and shifts toward the upper chest, but it also meaningfully increases shoulder strain at that angle, so it needs noticeably lighter weight if you ever try it, not a straight swap"]},
     image:'flat-dumbbell-fly', icon:'dumbbell', defaultSets:[{reps:12,weight:8},{reps:12,weight:8},{reps:12,weight:8}] },
 
-  { id:'squeezePress', day:'both', optional:true, name:'Squeeze Press', equip:'Flat bench, pair of light dumbbells or a single dumbbell held with both hands',
+  { id:'squeezePress', day:'C', name:'Squeeze Press', equip:'Flat bench, pair of light dumbbells or a single dumbbell held with both hands',
     cue:"Press the dumbbells together hard and hold that inward squeeze the entire time you press up and lower down, the squeeze does more work than the weight.",
     muscles:{primary:['chest'], secondary:['triceps']},
     notes:{mistakes:["Losing the inward pressure between the dumbbells partway through the rep, the constant squeeze is the entire mechanism here, not just a starting cue","Going too heavy, this is a burnout-style isolation finisher, not a strength lift, if you need to strain to press it, the squeeze is the first thing that breaks down"], angles:["Flat only","This movement is specifically about the center and inner chest, changing the bench angle works directly against that purpose rather than adding variety to it"]},
     image:'flat-dumbbell-squeeze', icon:'dumbbell', defaultSets:[{reps:12,weight:6},{reps:12,weight:6},{reps:12,weight:6}] },
 
-  { id:'hammerCurl', day:'both', optional:true, name:'Hammer Curl', equip:'Pair of dumbbells, neutral grip, seated or standing',
+  { id:'hammerCurl', day:'A', name:'Hammer Curl', equip:'Pair of dumbbells, neutral grip, seated or standing',
     cue:"Curl with your palms facing each other the entire rep, elbows pinned at your sides, no wrist rotation.",
     muscles:{primary:['biceps'], secondary:[]},
     notes:{mistakes:["Same swinging and elbow drift issues as a standard curl","Rotating the wrist mid-rep, the neutral, palms-facing-in grip needs to stay neutral throughout, that fixed rotation is precisely what shifts emphasis toward the brachialis and forearm rather than the main bicep"], angles:["Standing, elbows pinned at your sides, identical positioning to a regular curl, only the grip changes here, not the arm angle, which is why it's worth having as its own distinct movement rather than a note on the regular curl"]},
     image:'standing-hammer-curl', icon:'dumbbell', defaultSets:[{reps:11,weight:10},{reps:11,weight:10},{reps:11,weight:10}] },
 
-  { id:'preacherCurl', day:'both', optional:true, name:'Preacher Curl', equip:'Preacher bench, dumbbell or EZ bar',
+  { id:'preacherCurl', day:'B', name:'Preacher Curl', equip:'Preacher bench, dumbbell or EZ bar',
     cue:"Rest the back of your upper arm flat on the pad, curl up without letting your elbow lift off, lower until your arm is almost straight.",
     muscles:{primary:['biceps'], secondary:[]},
     notes:{mistakes:["Not fully extending the arm at the bottom of the rep, the preacher bench exists specifically to let you safely access a full range without the shoulder compensating, cutting it short wastes the point of the machine","Lifting your armpit off the pad to cheat the weight up in the last few reps"], angles:["The pad angle is typically fixed on most machines, the technique adjustment is keeping your upper arm flush against the pad throughout, rather than letting it lift away as the weight gets heavy"]},
     image:'preacher-curl', icon:'dumbbell', defaultSets:[{reps:10,weight:8},{reps:10,weight:8},{reps:10,weight:8}] },
 
-  { id:'benchDip', day:'both', optional:true, name:'Bench Dip', equip:'Flat bench, feet on floor or a second bench',
+  { id:'benchDip', day:'C', name:'Bench Dip', equip:'Flat bench, feet on floor or a second bench',
     cue:"Hands on the bench behind you, lower your hips straight down by bending your elbows, press back up without locking out hard at the top.",
     muscles:{primary:['triceps'], secondary:['chest','frontDelt']},
     notes:{mistakes:["Elbows flaring out wide instead of staying tucked back close to your torso, tucked keeps the triceps doing the work, flared shifts unwanted stress onto the front of the shoulder","Lowering too deep, past a 90 degree elbow bend, which is a common cause of shoulder strain on this specific movement","Walking your feet too close to the bench, which reduces the range and difficulty, extending your legs further out increases the challenge"], angles:["An upright torso through the movement keeps this triceps-dominant, which is the entire reason to do this exercise separately from the Assisted Dip machine, that machine's slight forward lean option biases chest, this one is meant to isolate triceps specifically"]},
     image:'bench-dip', icon:'bodyweight', defaultSets:[{reps:10,weight:0},{reps:10,weight:0},{reps:10,weight:0}] },
 
-  { id:'legExtension', day:'both', optional:true, name:'Leg Extension', equip:'Leg extension machine',
+  { id:'legExtension', day:'C', name:'Leg Extension', equip:'Leg extension machine',
     cue:"Extend your legs until they're straight, pause briefly at the top, lower under control back to the start.",
     muscles:{primary:['quads'], secondary:[]},
     notes:{mistakes:["Using momentum, swinging the weight up rather than a controlled extension, this is a small isolation movement, cheating it defeats the purpose entirely","Locking the knee out hard at the top on every single rep, occasional lockout is fine but constant hard locking adds unnecessary joint stress over time","Letting your hips lift off the seat to help move heavier weight"], angles:["Seat back position affects hip angle and comfort more than muscle targeting on most machines, the main adjustable variable that matters here is foot pad height, positioned so the pad sits against your shin just above the ankle, not up near the knee"]},
@@ -782,13 +795,13 @@ const EXERCISES = [
     notes:{mistakes:["Arching the lower back to help pull the weight, keep your hips pressed into the pad throughout","Using a fast, jerky motion instead of controlling both the curl and the return, the lowering phase is doing real work here too","Not fully extending the leg at the start of each rep, cutting range short reduces the actual stimulus"], angles:["Pointing your toes can slightly shift emphasis toward the calf assisting the movement, flexing your feet back keeps the focus more purely on the hamstring, worth trying both to feel the difference"]},
     image:'leg-curl', icon:'machine', defaultSets:[{reps:12,weight:15},{reps:12,weight:15},{reps:12,weight:15}] },
 
-  { id:'romanianDeadlift', day:'both', optional:true, name:'Romanian Deadlift (Dumbbell)', equip:'Pair of dumbbells',
+  { id:'romanianDeadlift', day:'A', name:'Romanian Deadlift (Dumbbell)', equip:'Pair of dumbbells',
     cue:"Hinge at your hips with a soft knee bend, push your hips back and lower the dumbbells along your legs until you feel a stretch in your hamstrings, then drive your hips forward to stand back up.",
     muscles:{primary:['hamstrings','glutes'], secondary:[]},
     notes:{mistakes:["Rounding the lower or upper back near the bottom of the rep, almost always a sign the weight is too heavy or you're forcing a range you can't yet control with good form, reduce the load or stop the descent sooner rather than chase depth","Letting the knees bend forward and the hips drop straight down, this turns the movement into a squat pattern instead of a hip hinge, the fix is softening the knees once at the start and then focusing on pushing your hips backward, not down","Holding the dumbbells too far out in front of your body, which lets them drift away and adds strain to your lower back, the better position is angling them roughly 45 degrees so they stay in light contact with your thighs on the way down","Rushing the movement, a slow, controlled descent is what actually trains the hamstrings, dropping fast just hides form breakdowns"], angles:["This isn't an angle-adjustable exercise the way a bench is, but range of motion is the equivalent variable, lower only until you feel a real stretch in your hamstrings, usually around mid-shin, not to the floor, forcing more range than your hamstring flexibility allows is where most of the injury risk in this lift actually comes from"]},
     image:'romanian-deadlift', icon:'dumbbell', defaultSets:[{reps:10,weight:14},{reps:10,weight:14},{reps:10,weight:14}] },
 
-  { id:'walkingLunge', day:'both', optional:true, name:'Walking Lunge', equip:'Pair of dumbbells, walking space',
+  { id:'walkingLunge', day:'C', name:'Walking Lunge', equip:'Pair of dumbbells, walking space',
     cue:"Step forward into a lunge, drop your back knee toward the floor, push off your front foot into the next step forward rather than stepping back.",
     muscles:{primary:['quads'], secondary:['glutes','hamstrings']},
     notes:{mistakes:["Front knee traveling too far past the toes, some forward travel is normal but excessive lean forward shifts the exercise toward the knee joint rather than the glute and quad","Taking a stride that's too short, which cramps the movement and limits depth, and too long, which makes balance unnecessarily hard, aim for a stride that lets your back knee lightly graze the floor with control","Rushing between steps instead of pausing briefly to find your balance before the next stride"], angles:["A more upright torso through each step emphasizes the quad more, leaning the torso forward slightly shifts more emphasis toward the glute, similar principle to the Bulgarian Split Squat you're already doing, worth alternating which you use across sessions"]},
@@ -800,25 +813,25 @@ const EXERCISES = [
     notes:{mistakes:["Pushing through your toes instead of your heels, this shifts focus away from the glutes and onto the quads, drive through your heels throughout, you can even lift your toes slightly off the ground during a set to reinforce the habit","Overarching your lower back at the top of the movement, which risks the lumbar spine and actually reduces how effectively the glutes are working, at the top your body should form a straight line from shoulders to knees, not an arch","Pushing your hips higher than that straight line in an attempt to feel more of a squeeze, this is what causes the excess arch in the first place"], angles:["Bringing your feet closer together and letting your knees drop outward during the movement increases external rotation at the hip, which shifts more emphasis onto the gluteus medius (the side of the glute) rather than the main glute max, worth trying as a variation once the standard version feels solid"]},
     image:'hip-thrust', icon:'barbell', defaultSets:[{reps:10,weight:20},{reps:10,weight:20},{reps:10,weight:20}] },
 
-  { id:'pushUpStandard', day:'both', optional:true, name:'Push-Up (Standard)', equip:'Floor mat',
+  { id:'pushUpStandard', day:'B', name:'Push-Up (Standard)', equip:'Floor mat',
     cue:"Hands just outside shoulder width, lower your chest to the floor keeping a straight line from head to heels, press back up.",
     muscles:{primary:['chest'], secondary:['frontDelt','triceps']},
     notes:{mistakes:["Hips sagging toward the floor, a sign your core has fatigued before your chest and arms have, worth stopping the set there rather than continuing with poor form","Flaring elbows to a full 90 degrees rather than keeping them closer to 45, same shoulder-stress logic as the bench press","Not achieving full range, cutting the descent short before your chest gets close to the floor"], angles:["This is your baseline, mid-chest and triceps roughly evenly split"]},
     image:'pushups-standard', icon:'bodyweight', defaultSets:[{reps:12,weight:0},{reps:12,weight:0},{reps:12,weight:0}] },
 
-  { id:'pushUpIncline', day:'both', optional:true, name:'Push-Up (Incline)', equip:'Bench or sturdy elevated surface',
+  { id:'pushUpIncline', day:'B', name:'Push-Up (Incline)', equip:'Bench or sturdy elevated surface',
     cue:"Hands on the elevated surface, body straight from head to heels, lower your chest to the edge and press back up.",
     muscles:{primary:['chest'], secondary:['frontDelt','triceps']},
     notes:{mistakes:["Same hip sag and elbow flare issues as standard push-ups","Choosing too low an incline if the goal is genuinely reducing difficulty, a higher hand placement (a bench or higher surface) meaningfully reduces the load, a barely-elevated surface doesn't actually make it easier"], angles:["The steeper the incline (hands higher), the easier the movement and the more it shifts toward the front delt and upper chest rather than the mid chest, useful as an easier regression if standard push-ups are still difficult, not really a chest-building variation in its own right"]},
     image:'pushup-incline', icon:'bodyweight', defaultSets:[{reps:12,weight:0},{reps:12,weight:0},{reps:12,weight:0}] },
 
-  { id:'pushUpDecline', day:'both', optional:true, name:'Push-Up (Decline)', equip:'Bench or sturdy elevated surface for your feet',
+  { id:'pushUpDecline', day:'C', name:'Push-Up (Decline)', equip:'Bench or sturdy elevated surface for your feet',
     cue:"Feet elevated behind you, hands on the floor, lower your chest toward the floor keeping a straight line, press back up.",
     muscles:{primary:['chest'], secondary:['frontDelt','triceps']},
     notes:{mistakes:["Letting your hips sag as your feet are elevated, the forward lean this creates increases demand on your chest, shoulders, and triceps, while your core has to work harder to stop your hips from collapsing, so fatigue here shows up as sagging faster than it would on a standard push-up","Not achieving a real stretch at the bottom, the whole benefit of this variation is the deeper stretch across the upper chest that the elevated foot position creates"], angles:["Feet elevated on a bench or step, the higher the elevation, the more the emphasis shifts toward the upper chest fibers near the collarbone, the same portion of the chest that flat pressing movements tend to undertrain, which makes this a genuinely useful addition to your library rather than just a harder version of a standard push-up"]},
     image:'pushup-decline', icon:'bodyweight', defaultSets:[{reps:10,weight:0},{reps:10,weight:0},{reps:10,weight:0}] },
 
-  { id:'pushUpDiamond', day:'both', optional:true, name:'Push-Up (Diamond)', equip:'Floor mat',
+  { id:'pushUpDiamond', day:'B', name:'Push-Up (Diamond)', equip:'Floor mat',
     cue:"Hands together under your chest, thumbs and index fingers forming a diamond, lower your chest to your hands and press back up.",
     muscles:{primary:['triceps'], secondary:['chest','frontDelt']},
     notes:{mistakes:["Letting the elbows flare out wide, which defeats the purpose of this variation entirely, the hands need to stay close together and the elbows need to travel back close to your torso, not out to the sides, to keep the emphasis on the triceps rather than sharing it with the chest and shoulders","Sagging hips, same core-fatigue signal as the other variants"], angles:["Hand placement close together directly under the center of the chest, forming a diamond shape with your thumbs and index fingers touching, is what shifts this from a chest movement into a genuinely triceps-dominant one, keeping elbows tucked close throughout the movement matters more here than in any other push-up variant"]},
@@ -879,9 +892,19 @@ function persistHistory(){
 }
 
 /* ---------- MINI ICON (hub thumbnail) ---------- */
+/* Fallback glyph for exercises with no photo yet (see icon field on the exercise data). */
+
+const ICON_SHAPES = {
+  machine: `<rect x="9" y="5" width="26" height="34" rx="3"/><line x1="14" y1="13" x2="30" y2="13"/><line x1="14" y1="19" x2="30" y2="19"/><line x1="14" y1="25" x2="30" y2="25"/><line x1="14" y1="31" x2="30" y2="31"/>`
+};
+
+function iconSvg(key, size){
+  return `<svg viewBox="0 0 44 44" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${ICON_SHAPES[key] || ''}</svg>`;
+}
 
 function miniIcon(exercise){
   if(exercise.image) return `<img src="images/${exercise.image}.png" alt="" loading="lazy">`;
+  if(exercise.icon) return iconSvg(exercise.icon, 44);
   return `<img src="img/thumb-${exercise.movement}.png" alt="" loading="lazy">`;
 }
 
