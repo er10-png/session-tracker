@@ -930,7 +930,7 @@ function iconSvg(key, size){
 }
 
 function miniIcon(exercise){
-  if(exercise.image) return `<img src="images/${exercise.image}.png" alt="" loading="lazy">`;
+  if(exercise.image) return `<img src="images/${exercise.image}.jpg" alt="" loading="lazy">`;
   if(exercise.icon) return iconSvg(exercise.icon, 44);
   return `<img src="img/thumb-${exercise.movement}.png" alt="" loading="lazy">`;
 }
@@ -1827,7 +1827,7 @@ function renderMovement(e){
   if(e.image){
     wrap.innerHTML = `
       <div class="exec-panel">
-        <img src="images/${e.image}.png" alt="Execution diagram" loading="lazy">
+        <img src="images/${e.image}.jpg" alt="Execution diagram" loading="lazy">
       </div>
     `;
   } else {
@@ -1938,13 +1938,22 @@ function renderMovement(e){
   let startX = 0, startY = 0;
   let activeCard = null;
 
+  function previewSrc(e){
+    if(e.image) return `images/${e.image}.jpg`;
+    if(e.movement) return `img/${e.movement}.png`;
+    return null;
+  }
+
+  function prefetch(card){
+    const e = EXERCISES.find(x => x.id === card.dataset.id);
+    const src = e && previewSrc(e);
+    if(src) document.getElementById('previewImage').src = src;
+  }
+
   function showPreview(card){
     const e = EXERCISES.find(x => x.id === card.dataset.id);
-    if(!e) return;
-    const img = document.getElementById('previewImage');
-    if(e.image) img.src = `images/${e.image}.png`;
-    else if(e.movement) img.src = `img/${e.movement}.png`;
-    else return;
+    const src = e && previewSrc(e);
+    if(!src) return;
     document.getElementById('previewOverlay').classList.add('open');
   }
 
@@ -1964,6 +1973,7 @@ function renderMovement(e){
     clearHold();
     holdFired = false;
     activeCard = card;
+    prefetch(card);
     const t = e.touches[0];
     startX = t.clientX; startY = t.clientY;
     holdTimeout = setTimeout(() => {
