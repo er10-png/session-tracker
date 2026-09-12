@@ -66,9 +66,6 @@
   }
   .day-btn.active{ background:var(--accent-dim); color:var(--accent); }
   .list{ padding:14px 16px 0; display:flex; flex-direction:column; gap:10px; }
-  .section-head{ padding:22px 16px 0; }
-  .section-head h2{ font-size:12px; letter-spacing:0.1em; text-transform:uppercase; font-weight:800; color:var(--dim); }
-  .section-head p{ font-size:11.5px; color:var(--dim); margin-top:4px; line-height:1.4; }
 
   .ex-card{
     display:flex;
@@ -404,11 +401,6 @@
     <button class="day-btn" data-day="A" onclick="setDay('A')">Full Body A</button>
     <button class="day-btn" data-day="B" onclick="setDay('B')">Full Body B</button>
     <button class="day-btn" data-day="C" onclick="setDay('C')">Full Body C</button>
-    <button class="day-btn" data-day="optional" onclick="setDay('optional')">Optional</button>
-  </div>
-  <div class="section-head" id="hubSectionHead" style="display:none;">
-    <h2>Optional add-ins</h2>
-    <p>Not tied to a day, drop these into either session when you have the time.</p>
   </div>
   <div class="list" id="exerciseList"></div>
 
@@ -965,12 +957,10 @@ function cardHtml(e){
 
 function renderHub(){
   const list = document.getElementById('exerciseList');
-  const head = document.getElementById('hubSectionHead');
   const allWrap = document.getElementById('allTabWrap');
 
   if(currentDay === 'all'){
     list.style.display = 'none';
-    head.style.display = 'none';
     allWrap.style.display = 'block';
     renderAllList();
     return;
@@ -978,15 +968,8 @@ function renderHub(){
   allWrap.style.display = 'none';
   list.style.display = '';
 
-  if(currentDay === 'optional'){
-    head.style.display = 'block';
-    const items = EXERCISES.filter(e => e.optional);
-    list.innerHTML = items.map(cardHtml).join('');
-  } else {
-    head.style.display = 'none';
-    const items = EXERCISES.filter(e => (e.day === currentDay || e.day === 'both') && !e.optional);
-    list.innerHTML = items.map(cardHtml).join('');
-  }
+  const items = EXERCISES.filter(e => e.day === currentDay);
+  list.innerHTML = items.map(cardHtml).join('');
 }
 
 /* ---------- ALL TAB: searchable list ---------- */
